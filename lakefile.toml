@@ -1,0 +1,22 @@
+name = "RogersRamanujan"
+version = "0.1.0"
+keywords = ["math"]
+defaultTargets = ["RogersRamanujan"]
+
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+autoImplicit = false # no "assume a typo is a new variable"
+relaxedAutoImplicit = false
+maxSynthPendingDepth = 3 # same as mathlib, changes behaviour of typeclass inference
+weak.linter.flexible = true # no rigid tactic (e.g. `exact`) after a flexible tactic (e.g. `simp`)
+weak.linter.mathlibStandardSet = true
+# These files extend Mathlib files and intentionally omit copyright headers.
+weak.linter.style.header = false
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.31.0"
+
+[[lean_lib]]
+name = "RogersRamanujan"
