@@ -358,10 +358,9 @@ factor to be a non-zero-divisor. -/
 lemma qPochhammer_qChoose_coeff_mul_factor (q : R) {n k : ℕ} (hk : k ≤ n) :
     (q; q)_n * qChoose q n k * ((q; q)_k * (q; q)_(n - k)) =
     (q ^ (n + 1 - k); q)_k * (q ^ (k + 1); q)_(n - k) * ((q; q)_k * (q; q)_(n - k)) := by
-  have h := qChoose_mul_qPochhammer_mul_qPochhammer hk (q := q)
   calc (q; q)_n * qChoose q n k * ((q; q)_k * (q; q)_(n - k))
       = (qChoose q n k * (q; q)_k * (q; q)_(n - k)) * (q; q)_n := by ring
-    _ = (q; q)_n * (q; q)_n := by rw [h]
+    _ = (q; q)_n * (q; q)_n := by rw [qChoose_mul_qPochhammer_mul_qPochhammer hk (q := q)]
     _ = ((q; q)_(n - k) * (q ^ (n + 1 - k); q)_k) *
           ((q; q)_k * (q ^ (k + 1); q)_(n - k)) := by
         rw [← qPochhammer_qq_add_right q hk, ← qPochhammer_qq_add_left q hk]
