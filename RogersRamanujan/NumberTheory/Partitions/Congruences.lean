@@ -280,11 +280,9 @@ private theorem coeff_map_powerSeriesCard_five_mul_add_four (n : ℕ) :
   by_cases hj : 5 ∣ j
   · refine Or.inl (coeff_qPochhammerInf_zmod_five_pow_three_cube_eq_zero i ?_)
     have hj0 : (j : ZMod 5) = 0 := by rw [ZMod.natCast_eq_zero_iff]; exact hj
-    have hsum : (i : ZMod 5) + (j : ZMod 5) = 4 := by
-      rw [← Nat.cast_add, hij]
-      grind
-    rw [hj0, add_zero] at hsum
-    exact hsum
+    calc (i : ZMod 5) = (i : ZMod 5) + (j : ZMod 5) := by rw [hj0, add_zero]
+      _ = ((5 * n + 4 : ℕ) : ZMod 5) := by rw [← Nat.cast_add, hij]
+      _ = 4 := by grind
   · exact Or.inr (coeff_bInv_qPochhammerInf_zmod5_pow_ten j hj)
 
 /-- **Ramanujan's congruence mod 5**: `p(5n + 4) ≡ 0 (mod 5)` for every `n`, phrased as the
@@ -385,11 +383,9 @@ private theorem coeff_map_powerSeriesCard_seven_mul_add_five (n : ℕ) :
   by_cases hj : 7 ∣ j
   · refine Or.inl (coeff_qPochhammerInf_zmod_seven_pow_three_sq_eq_zero i ?_)
     have hj0 : (j : ZMod 7) = 0 := by rw [ZMod.natCast_eq_zero_iff]; exact hj
-    have hsum : (i : ZMod 7) + (j : ZMod 7) = (5 : ZMod 7) := by
-      rw [← Nat.cast_add, hij]
-      grind
-    rw [hj0, add_zero] at hsum
-    exact hsum
+    calc (i : ZMod 7) = (i : ZMod 7) + (j : ZMod 7) := by rw [hj0, add_zero]
+      _ = ((7 * n + 5 : ℕ) : ZMod 7) := by rw [← Nat.cast_add, hij]
+      _ = 5 := by grind
   · refine Or.inr ?_
     rw [qPochhammerInf_zmod_p_self_pow_p_zmod_p 7 Nat.prime_seven]
     exact coeff_bInv_qPochhammerInf_zmod_p_pow_p 7 Nat.prime_seven j hj
