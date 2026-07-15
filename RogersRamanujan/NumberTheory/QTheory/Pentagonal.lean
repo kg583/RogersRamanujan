@@ -22,6 +22,9 @@ In this file we prove the well-celebrated pentagonal number theorem:
 We also prove the generating function for the partition function:
 `∑' n, p(n) q^n = 1/(q; q)_∞`. This is `Nat.Partition.tsum_card`.
 
+Combining the two gives Euler's pentagonal number recurrence for `p`. This is
+`Nat.Partition.hasSum_negOnePow_mul_card_sub_pentagonal`.
+
 -/
 
 @[expose] public section
@@ -106,5 +109,23 @@ theorem tsum_card {R : Type*} [CommRing R] [UniformSpace R] [IsUniformAddGroup R
     {q : R} (hq : IsTopologicallyNilpotent q := by simp) :
     ∑' n : ℕ, (Fintype.card (Partition n) : ℤ) • q ^ n = bInv (q; q)_∞ :=
   (hasSum_card hq).tsum_eq
+
+/-- **Euler's pentagonal number recurrence**: `p(n) = ∑_{k ≠ 0} (-1)^{k+1} p(n - k(3k-1)/2)`
+for `n ≥ 1`. -/
+theorem hasSum_negOnePow_mul_card_sub_pentagonal (n : ℕ) :
+    HasSum (fun k : ℤ ↦ (k.negOnePow : ℤ) *
+        if pentagonal k ≤ n then (Fintype.card (Partition (n - pentagonal k)) : ℤ) else 0)
+      (if n = 0 then 1 else 0) := by
+  have hmul := hasSum_qPochhammerInf_self_powerSeries.mul_left
+    (PowerSeries.mk fun m ↦ (Fintype.card (Partition m) : ℤ))
+  rw [mul_qPochhammerInf_self_powerSeries_eq_one] at hmul
+  have hcoeff := (PowerSeries.WithPiTopology.hasSum_iff_hasSum_coeff ℤ).mp hmul n
+  rw [PowerSeries.coeff_one] at hcoeff
+  refine hcoeff.congr_fun fun k ↦ ?_
+  have hstep :
+      (k.negOnePow • X ^ pentagonal k : ℤ⟦X⟧) = C (k.negOnePow : ℤ) * X ^ pentagonal k := by
+    ext m
+    simp [Units.smul_def]
+  rw [hstep, mul_left_comm, coeff_C_mul, coeff_mul_X_pow', coeff_mk]
 
 end Nat.Partition
