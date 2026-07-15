@@ -203,7 +203,7 @@ private lemma choose_two_succ_cast_zmod_five (n : ℕ) :
   push_cast at hc
   linear_combination 3 * hc - ((n + 1).choose 2 : ZMod 5) * h5
 
-private lemma coeff_qPochhammerInf_zmod5_pow_three_eq_zero (m : ℕ)
+private lemma coeff_qPochhammerInf_zmod_five_pow_three_eq_zero (m : ℕ)
     (h0 : (m : ZMod 5) ≠ 0) (h1 : (m : ZMod 5) ≠ 1) :
     (((X; X)_∞ : (ZMod 5)⟦X⟧) ^ 3).coeff m = 0 := by
   letI : TopologicalSpace (ZMod 5) := ⊥
@@ -232,7 +232,7 @@ private lemma zmod_five_eq_zero_or_one_of_ne {i : ℕ}
   · exact Or.inl h
   · rcases eq_or_ne (i : ZMod 5) 1 with h | h1
     · exact Or.inr h
-    · exact absurd (coeff_qPochhammerInf_zmod5_pow_three_eq_zero i h0 h1) hi_ne
+    · exact absurd (coeff_qPochhammerInf_zmod_five_pow_three_eq_zero i h0 h1) hi_ne
 
 private lemma coeff_qPochhammerInf_zmod5_pow_three_sq_eq_zero (m : ℕ)
     (hm : (m : ZMod 5) = 3 ∨ (m : ZMod 5) = 4) :
@@ -244,10 +244,10 @@ private lemma coeff_qPochhammerInf_zmod5_pow_three_sq_eq_zero (m : ℕ)
   have hj := (by decide : ∀ a b c : ZMod 5, (c = 3 ∨ c = 4) → (a = 0 ∨ a = 1)
     → a + b = c → b ≠ 0 ∧ b ≠ 1)
     (i : ZMod 5) (j : ZMod 5) (m : ZMod 5) hm (zmod_five_eq_zero_or_one_of_ne hi_ne) hsum
-  exact coeff_qPochhammerInf_zmod5_pow_three_eq_zero j hj.1 hj.2
+  exact coeff_qPochhammerInf_zmod_five_pow_three_eq_zero j hj.1 hj.2
 
-private lemma coeff_qPochhammerInf_zmod5_pow_three_cube_eq_zero (m : ℕ) (hm : (m : ZMod 5) = 4) :
-    ((((X; X)_∞ : (ZMod 5)⟦X⟧) ^ 3) ^ 3).coeff m = 0 := by
+private lemma coeff_qPochhammerInf_zmod_five_pow_three_cube_eq_zero (m : ℕ)
+    (hm : (m : ZMod 5) = 4) : ((((X; X)_∞ : (ZMod 5)⟦X⟧) ^ 3) ^ 3).coeff m = 0 := by
   rw [show (((X; X)_∞ : (ZMod 5)⟦X⟧) ^ 3) ^ 3
       = ((X; X)_∞) ^ 3 * (((X; X)_∞) ^ 3 * ((X; X)_∞) ^ 3) by ring]
   refine coeff_mul_eq_zero_of_forall _ _ m fun i j hij => ?_
@@ -278,7 +278,7 @@ private theorem coeff_map_powerSeriesCard_five_mul_add_four (n : ℕ) :
   rw [map_powerSeriesCard_zmod_five_eq]
   refine coeff_mul_eq_zero_of_forall _ _ (5 * n + 4) fun i j hij => ?_
   by_cases hj : 5 ∣ j
-  · refine Or.inl (coeff_qPochhammerInf_zmod5_pow_three_cube_eq_zero i ?_)
+  · refine Or.inl (coeff_qPochhammerInf_zmod_five_pow_three_cube_eq_zero i ?_)
     have hj0 : (j : ZMod 5) = 0 := by rw [ZMod.natCast_eq_zero_iff]; exact hj
     have hsum : (i : ZMod 5) + (j : ZMod 5) = ((5 * n + 4 : ℕ) : ZMod 5) := by
       rw [← Nat.cast_add, hij]
@@ -309,11 +309,102 @@ end Mod5
 
 section Mod7
 
+private lemma choose_two_succ_cast_zmod_seven (n : ℕ) :
+    ((n + 1).choose 2 : ZMod 7) = 4 * ((n : ZMod 7) + 1) * (n : ZMod 7) := by
+  have hdvd : 2 ∣ (n + 1) * n := by
+    rw [mul_comm]; exact (Nat.even_mul_succ_self n).two_dvd
+  have h2 : 2 * (n + 1).choose 2 = (n + 1) * n := by
+    rw [Nat.choose_two_right, Nat.add_sub_cancel, Nat.mul_div_cancel' hdvd]
+  have h7 : (7 : ZMod 7) = 0 := by decide
+  have hc := congrArg (Nat.cast : ℕ → ZMod 7) h2
+  push_cast at hc
+  linear_combination 4 * hc - ((n + 1).choose 2 : ZMod 7) * h7
+
+private lemma coeff_qPochhammerInf_zmod_seven_pow_three_eq_zero (m : ℕ)
+    (h0 : (m : ZMod 7) ≠ 0) (h1 : (m : ZMod 7) ≠ 1) (h3 : (m : ZMod 7) ≠ 3) :
+    (((X; X)_∞ : (ZMod 7)⟦X⟧) ^ 3).coeff m = 0 := by
+  letI : TopologicalSpace (ZMod 7) := ⊥
+  letI : DiscreteTopology (ZMod 7) := ⟨rfl⟩
+  have hcoeff := (PowerSeries.WithPiTopology.hasSum_iff_hasSum_coeff (ZMod 7)).mp
+    (hasSum_qPochhammerInf_self_pow_three_powerSeries (ZMod 7)) m
+  have hz : HasSum (fun _ : ℕ => (0 : ZMod 7)) ((((X; X)_∞ : (ZMod 7)⟦X⟧) ^ 3).coeff m) := by
+    refine hcoeff.congr_fun fun n => ?_
+    rw [show ((-1 : (ZMod 7)⟦X⟧)) ^ n * C (2 * (n : ZMod 7) + 1)
+        = C ((-1 : ZMod 7) ^ n * (2 * (n : ZMod 7) + 1)) by
+          rw [map_mul, map_pow, map_neg, map_one], coeff_C_mul, coeff_X_pow]
+    by_cases hk : m = (n + 1).choose 2
+    · have hm7 : (m : ZMod 7) = 4 * ((n : ZMod 7) + 1) * (n : ZMod 7) := by
+        rw [hk, choose_two_succ_cast_zmod_seven]
+      have hkey : 2 * (n : ZMod 7) + 1 = 0 :=
+        (by decide : ∀ x : ZMod 7, 4 * (x + 1) * x ≠ 0 → 4 * (x + 1) * x ≠ 1 →
+          4 * (x + 1) * x ≠ 3 → 2 * x + 1 = 0)
+          (n : ZMod 7) (hm7 ▸ h0) (hm7 ▸ h1) (hm7 ▸ h3)
+      rw [if_pos hk, hkey]; ring
+    · rw [if_neg hk, mul_zero]
+  exact hz.unique hasSum_zero
+
+private lemma zmod_seven_eq_zero_one_or_three_of_ne {i : ℕ}
+    (hi_ne : (((X; X)_∞ : (ZMod 7)⟦X⟧) ^ 3).coeff i ≠ 0) :
+    (i : ZMod 7) = 0 ∨ (i : ZMod 7) = 1 ∨ (i : ZMod 7) = 3 := by
+  rcases eq_or_ne (i : ZMod 7) 0 with h | h0
+  · exact Or.inl h
+  · rcases eq_or_ne (i : ZMod 7) 1 with h | h1
+    · exact Or.inr (Or.inl h)
+    · rcases eq_or_ne (i : ZMod 7) 3 with h | h3
+      · exact Or.inr (Or.inr h)
+      · exact absurd (coeff_qPochhammerInf_zmod_seven_pow_three_eq_zero i h0 h1 h3) hi_ne
+
+private lemma coeff_qPochhammerInf_zmod_seven_pow_three_sq_eq_zero
+    (m : ℕ) (hm : (m : ZMod 7) = 5) : ((((X; X)_∞ : (ZMod 7)⟦X⟧) ^ 3) ^ 2).coeff m = 0 := by
+  rw [show (((X; X)_∞ : (ZMod 7)⟦X⟧) ^ 3) ^ 2 = ((X; X)_∞) ^ 3 * ((X; X)_∞) ^ 3 by ring]
+  refine coeff_mul_eq_zero_of_forall _ _ m fun i j hij => ?_
+  rw [or_iff_not_imp_left]
+  intro hi_ne
+  have hsum : (i : ZMod 7) + (j : ZMod 7) = (m : ZMod 7) := by rw [← Nat.cast_add, hij]
+  have hj := (by decide : ∀ a b c : ZMod 7, c = 5 → (a = 0 ∨ a = 1 ∨ a = 3) →
+    a + b = c → b ≠ 0 ∧ b ≠ 1 ∧ b ≠ 3)
+    (i : ZMod 7) (j : ZMod 7) (m : ZMod 7) hm (zmod_seven_eq_zero_one_or_three_of_ne hi_ne) hsum
+  exact coeff_qPochhammerInf_zmod_seven_pow_three_eq_zero j hj.1 hj.2.1 hj.2.2
+
+private lemma map_powerSeriesCard_zmod_seven_eq :
+    PowerSeries.map (Int.castRingHom (ZMod 7)) powerSeriesCard
+      = (((X; X)_∞ : (ZMod 7)⟦X⟧) ^ 3) ^ 2 * bInv (((X; X)_∞ : (ZMod 7)⟦X⟧) ^ 7) := by
+  have hEu := isUnit_qPochhammerInf_X_zmod 7
+  have hFE : PowerSeries.map (Int.castRingHom (ZMod 7)) powerSeriesCard * ((X; X)_∞) = 1 := by
+    rw [map_powerSeriesCard_zmod 7]; exact hEu.bInv_mul_cancel
+  have hFE7 : PowerSeries.map (Int.castRingHom (ZMod 7)) powerSeriesCard * ((X; X)_∞ ^ 7)
+      = ((X; X)_∞ ^ 3) ^ 2 := by
+    rw [show PowerSeries.map (Int.castRingHom (ZMod 7)) powerSeriesCard * ((X; X)_∞ ^ 7)
+        = (PowerSeries.map (Int.castRingHom (ZMod 7)) powerSeriesCard * (X; X)_∞) * (X; X)_∞ ^ 6 by
+          ring, hFE, one_mul]
+    ring
+  exact (hEu.pow 7).eq_mul_bInv_of_mul_eq hFE7
+
+private theorem coeff_map_powerSeriesCard_seven_mul_add_five (n : ℕ) :
+    (PowerSeries.map (Int.castRingHom (ZMod 7)) powerSeriesCard).coeff (7 * n + 5) = 0 := by
+  rw [map_powerSeriesCard_zmod_seven_eq]
+  refine coeff_mul_eq_zero_of_forall _ _ (7 * n + 5) fun i j hij => ?_
+  by_cases hj : 7 ∣ j
+  · refine Or.inl (coeff_qPochhammerInf_zmod_seven_pow_three_sq_eq_zero i ?_)
+    have hj0 : (j : ZMod 7) = 0 := by rw [ZMod.natCast_eq_zero_iff]; exact hj
+    have hsum : (i : ZMod 7) + (j : ZMod 7) = ((7 * n + 5 : ℕ) : ZMod 7) := by
+      rw [← Nat.cast_add, hij]
+    have h5 : ((7 * n + 5 : ℕ) : ZMod 7) = 5 := by
+      push_cast
+      rw [show (7 : ZMod 7) = 0 by decide, zero_mul, zero_add]
+    rw [hj0, add_zero, h5] at hsum
+    exact hsum
+  · refine Or.inr ?_
+    rw [qPochhammerInf_zmod_p_self_pow_p_zmod_p 7 Nat.prime_seven]
+    exact coeff_bInv_qPochhammerInf_zmod_p_pow_p 7 Nat.prime_seven j hj
+
 /-- **Ramanujan's congruence mod 7**: `p(7n + 5) ≡ 0 (mod 7)` for every `n`, phrased as the
 vanishing, modulo `7`, of the power series `∑ p(7n + 5) qⁿ`. -/
 theorem dissectShift_seven_five_map_zmod_seven_powerSeries :
     PowerSeries.map (Int.castRingHom (ZMod 7)) (powerSeriesCard.dissectShift 7 5) = 0 := by
-  sorry
+  ext n
+  simpa [PowerSeries.coeff_map, coeff_dissectShift] using
+    coeff_map_powerSeriesCard_seven_mul_add_five n
 
 /-- **Ramanujan's congruence mod 7**, as a divisibility statement: `7 ∣ p(7n + 5)` for every `n`. -/
 theorem seven_dvd_card_seven_mul_add_five (n : ℕ) :
