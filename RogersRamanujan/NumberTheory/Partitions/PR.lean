@@ -3,6 +3,10 @@ module
 public import Mathlib.Combinatorics.Enumerative.Partition.Basic
 public import Mathlib.Combinatorics.Young.YoungDiagram
 
+/-!
+This file contains declarations and theorems in awaiting Mathlib PRs
+-/
+
 @[expose] public section
 
 namespace YoungDiagram
