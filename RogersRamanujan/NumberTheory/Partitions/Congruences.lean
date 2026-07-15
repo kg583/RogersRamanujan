@@ -112,24 +112,6 @@ theorem coeff_mul_eq_zero_of_forall {R : Type*} [CommSemiring R] (f g : R⟦X⟧
 
 end PowerSeries
 
-namespace Nat.Partition
-
-section Mod5
-
-private theorem map_powerSeriesCard_zmod (l : ℕ) :
-    PowerSeries.map (Int.castRingHom (ZMod l)) powerSeriesCard
-      = bInv ((X; X)_∞ : (ZMod l)⟦X⟧) := by
-  have h1 : HasSum (fun n : ℕ => Partition.card n • (X : (ZMod l)⟦X⟧) ^ n)
-      (bInv ((X; X)_∞ : (ZMod l)⟦X⟧)) := hasSum_card
-  have h2 : HasSum (fun n : ℕ => C ((Partition.card n : ℤ) : ZMod l) * X ^ n)
-      (PowerSeries.map (Int.castRingHom (ZMod l)) powerSeriesCard) := by
-    have hc := hasSum_C_mul_X_pow (fun n => ((Partition.card n : ℤ) : ZMod l))
-    convert hc using 1
-    ext n
-    simp [PowerSeries.coeff_map]
-  refine h2.unique (h1.congr_fun fun n => ?_)
-  rw [zsmul_eq_mul, ← map_intCast (C : ZMod l →+* (ZMod l)⟦X⟧)]
-
 private lemma isNilpotent_pow_X_p (p : ℕ) (hp : Nat.Prime p) :
     IsTopologicallyNilpotent (X ^ p : (ZMod p)⟦X⟧) := by
   simp only [isTopologicallyNilpotent_iff_isNilpotent_constantCoeff, map_pow, constantCoeff_X]
@@ -137,7 +119,7 @@ private lemma isNilpotent_pow_X_p (p : ℕ) (hp : Nat.Prime p) :
   · simp only [IsNilpotent.zero]
   exact Nat.Prime.ne_zero hp
 
-private theorem qPochhammerInf_zmod_p_self_pow_p_zmod_p (p : ℕ) (hp : Nat.Prime p) :
+theorem qPochhammerInf_zmod_p_self_pow_p_zmod_p (p : ℕ) (hp : Nat.Prime p) :
     ((X; X)_∞ : (ZMod p)⟦X⟧) ^ p = (X ^ p; X ^ p)_∞ := by
   have hsub : ∀ Y : (ZMod p)⟦X⟧, (1 - Y) ^ p = 1 - Y ^ p := fun Y => by
     haveI : Fact p.Prime := ⟨hp⟩
@@ -155,12 +137,28 @@ private theorem qPochhammerInf_zmod_p_self_pow_p_zmod_p (p : ℕ) (hp : Nat.Prim
     (q := X ^ p) (isNilpotent_pow_X_p p hp) (isNilpotent_pow_X_p p hp)
   exact hEzp.unique (hEp0.congr_fun fun n => by ring)
 
-private theorem isUnit_qPochhammerInf_X_zmod (l : ℕ) :
+theorem isUnit_qPochhammerInf_X_zmod (l : ℕ) :
     IsUnit ((X; X)_∞ : (ZMod l)⟦X⟧) := by
   have hcont : Continuous (map (Int.castRingHom (ZMod l)) : ℤ⟦X⟧ →+* (ZMod l)⟦X⟧) := by fun_prop
   have := (isUnit_qPochhammerInf (a := (X : ℤ⟦X⟧)) (q := X)).map (map (Int.castRingHom (ZMod l)))
   rwa [map_qPochhammerInf_of_isTopologicallyNilpotent (map (Int.castRingHom (ZMod l))) hcont
     isTopologicallyNilpotent_X isTopologicallyNilpotent_X, map_X] at this
+
+namespace Nat.Partition
+
+theorem map_powerSeriesCard_zmod (l : ℕ) :
+    PowerSeries.map (Int.castRingHom (ZMod l)) powerSeriesCard
+      = bInv ((X; X)_∞ : (ZMod l)⟦X⟧) := by
+  have h1 : HasSum (fun n : ℕ => Partition.card n • (X : (ZMod l)⟦X⟧) ^ n)
+      (bInv ((X; X)_∞ : (ZMod l)⟦X⟧)) := hasSum_card
+  have h2 : HasSum (fun n : ℕ => C ((Partition.card n : ℤ) : ZMod l) * X ^ n)
+      (PowerSeries.map (Int.castRingHom (ZMod l)) powerSeriesCard) := by
+    have hc := hasSum_C_mul_X_pow (fun n => ((Partition.card n : ℤ) : ZMod l))
+    convert hc using 1
+    ext n
+    simp [PowerSeries.coeff_map]
+  refine h2.unique (h1.congr_fun fun n => ?_)
+  rw [zsmul_eq_mul, ← map_intCast (C : ZMod l →+* (ZMod l)⟦X⟧)]
 
 private theorem coeff_bInv_qPochhammerInf_zmod_p_pow_p (p : ℕ) (hp : Nat.Prime p) (m : ℕ)
     (hm : ¬ (p ∣ m)) : (bInv ((X ^ p; X ^ p)_∞ : (ZMod p)⟦X⟧)).coeff m = 0 := by
@@ -177,6 +175,8 @@ private theorem coeff_bInv_qPochhammerInf_zmod_p_pow_p (p : ℕ) (hp : Nat.Prime
     exact Nat.Prime.ne_zero hp)]
   refine Finset.sum_eq_zero fun i _ => ?_
   rw [coeff_C_mul, ← pow_mul, coeff_X_pow, if_neg (fun h => hm ⟨i, h⟩), mul_zero]
+
+section Mod5
 
 private lemma coeff_bInv_qPochhammerInf_zmod5_pow_ten (m : ℕ) (hm : ¬ (5 ∣ m)) :
     (bInv (((X; X)_∞ : (ZMod 5)⟦X⟧) ^ 10)).coeff m = 0 := by
