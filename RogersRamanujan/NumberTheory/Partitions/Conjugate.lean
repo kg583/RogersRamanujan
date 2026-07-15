@@ -65,10 +65,9 @@ theorem conjugate_length_eq_maxPart {n : ℕ} (p : Partition n) :
       by_contra hcon
       exact hnotmem (YoungDiagram.mem_iff_lt_rowLen.mpr (Nat.pos_of_ne_zero hcon))
     simp [Nat.Partition.maxPart, hparts, hrl, hrow0]
-  · have h0' : 0 < μ.colLen 0 := Nat.pos_of_ne_zero h0
-    have hmem : μ.rowLen 0 ∈ p.parts := by
+  · have hmem : μ.rowLen 0 ∈ p.parts := by
       rw [hparts, Multiset.mem_coe, YoungDiagram.rowLens, List.mem_map]
-      exact ⟨0, List.mem_range.mpr h0', rfl⟩
+      exact ⟨0, List.mem_range.mpr (Nat.pos_of_ne_zero h0), rfl⟩
     have hub : ∀ x ∈ p.parts, x ≤ μ.rowLen 0 := by
       intro x hx
       rw [hparts, Multiset.mem_coe, YoungDiagram.rowLens, List.mem_map] at hx

@@ -85,9 +85,7 @@ private theorem mul_qPochhammerInf_self_powerSeries_eq_one :
 
 theorem hasSum_card_powerSeries :
     HasSum (fun n : ℕ ↦ (Fintype.card (Partition n) : ℤ) • X ^ n) (bInv (X; X)_∞ : ℤ⟦X⟧) := by
-  have hgen : (PowerSeries.mk fun n ↦ (Fintype.card (Partition n) : ℤ)) = bInv (X; X)_∞ :=
-    eq_bInv_of_mul_eq_one mul_qPochhammerInf_self_powerSeries_eq_one
-  rw [← hgen]
+  rw [← eq_bInv_of_mul_eq_one mul_qPochhammerInf_self_powerSeries_eq_one]
   simpa [monomial_eq_C_mul_X_pow, smul_eq_C_mul] using
     hasSum_of_monomials_self (PowerSeries.mk fun n ↦ (Fintype.card (Partition n) : ℤ))
 
