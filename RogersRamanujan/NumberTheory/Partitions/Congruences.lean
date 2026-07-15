@@ -280,12 +280,10 @@ private theorem coeff_map_powerSeriesCard_five_mul_add_four (n : ℕ) :
   by_cases hj : 5 ∣ j
   · refine Or.inl (coeff_qPochhammerInf_zmod_five_pow_three_cube_eq_zero i ?_)
     have hj0 : (j : ZMod 5) = 0 := by rw [ZMod.natCast_eq_zero_iff]; exact hj
-    have hsum : (i : ZMod 5) + (j : ZMod 5) = ((5 * n + 4 : ℕ) : ZMod 5) := by
+    have hsum : (i : ZMod 5) + (j : ZMod 5) = 4 := by
       rw [← Nat.cast_add, hij]
-    have h4 : ((5 * n + 4 : ℕ) : ZMod 5) = 4 := by
-      push_cast
-      rw [show (5 : ZMod 5) = 0 by decide, zero_mul, zero_add]
-    rw [hj0, add_zero, h4] at hsum
+      grind
+    rw [hj0, add_zero] at hsum
     exact hsum
   · exact Or.inr (coeff_bInv_qPochhammerInf_zmod5_pow_ten j hj)
 
@@ -387,12 +385,10 @@ private theorem coeff_map_powerSeriesCard_seven_mul_add_five (n : ℕ) :
   by_cases hj : 7 ∣ j
   · refine Or.inl (coeff_qPochhammerInf_zmod_seven_pow_three_sq_eq_zero i ?_)
     have hj0 : (j : ZMod 7) = 0 := by rw [ZMod.natCast_eq_zero_iff]; exact hj
-    have hsum : (i : ZMod 7) + (j : ZMod 7) = ((7 * n + 5 : ℕ) : ZMod 7) := by
+    have hsum : (i : ZMod 7) + (j : ZMod 7) = (5 : ZMod 7) := by
       rw [← Nat.cast_add, hij]
-    have h5 : ((7 * n + 5 : ℕ) : ZMod 7) = 5 := by
-      push_cast
-      rw [show (7 : ZMod 7) = 0 by decide, zero_mul, zero_add]
-    rw [hj0, add_zero, h5] at hsum
+      grind
+    rw [hj0, add_zero] at hsum
     exact hsum
   · refine Or.inr ?_
     rw [qPochhammerInf_zmod_p_self_pow_p_zmod_p 7 Nat.prime_seven]
