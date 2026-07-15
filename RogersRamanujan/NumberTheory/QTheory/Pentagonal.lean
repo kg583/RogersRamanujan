@@ -67,14 +67,23 @@ namespace Nat.Partition
 
 open PowerSeries PowerSeries.WithPiTopology Finset
 
+protected abbrev card (n : ℕ) : ℤ := Fintype.card (Partition n)
+
+noncomputable def powerSeriesCard : ℤ⟦X⟧ := PowerSeries.mk fun n ↦ Partition.card n
+
+@[simp]
+theorem hasProd_powerSeriesCard : HasProd (fun (i : ℕ) => ∑' (j : ℕ), PowerSeries.X ^ ((i + 1) * j))
+    Partition.powerSeriesCard := by
+  have := hasProd_powerSeriesMk_card_restricted ℤ (fun _ ↦ True)
+  simpa [restricted]
+
+@[simp]
+theorem coeff_powerSeriesCard (n : ℕ) : powerSeriesCard.coeff n = Fintype.card (Partition n) :=
+  PowerSeries.coeff_mk _ _
+
 private theorem mul_qPochhammerInf_self_powerSeries_eq_one :
-    (PowerSeries.mk fun n ↦ (Fintype.card (Partition n) : ℤ)) * (X; X)_∞ = 1 := by
-  have hprod := hasProd_powerSeriesMk_card_restricted ℤ (fun _ : ℕ ↦ True)
-  have hcard : (fun n ↦ (#(restricted n (fun _ : ℕ ↦ True)) : ℤ)) =
-      fun n ↦ (Fintype.card (Partition n) : ℤ) := by
-    funext n
-    simp [restricted]
-  simp only [if_true, hcard] at hprod
+    Partition.powerSeriesCard * (X; X)_∞ = 1 := by
+  have hprod := hasProd_powerSeriesCard
   rw [← hprod.tprod_eq, qPochhammerInf_eq_tprod]
   · simp_rw [show ∀ i : ℕ, (X : ℤ⟦X⟧) * X ^ i = X ^ (i + 1) from fun i ↦ by ring]
     rw [← hprod.multipliable.tprod_mul (multipliable_one_sub_X_pow ℤ)]
@@ -84,15 +93,14 @@ private theorem mul_qPochhammerInf_self_powerSeries_eq_one :
   · simp
 
 theorem hasSum_card_powerSeries :
-    HasSum (fun n : ℕ ↦ (Fintype.card (Partition n) : ℤ) • X ^ n) (bInv (X; X)_∞ : ℤ⟦X⟧) := by
+    HasSum (fun n : ℕ ↦ Partition.card n • X ^ n) (bInv (X; X)_∞ : ℤ⟦X⟧) := by
   rw [← eq_bInv_of_mul_eq_one mul_qPochhammerInf_self_powerSeries_eq_one]
-  simpa [monomial_eq_C_mul_X_pow, smul_eq_C_mul] using
-    hasSum_of_monomials_self (PowerSeries.mk fun n ↦ (Fintype.card (Partition n) : ℤ))
+  simpa [monomial_eq_C_mul_X_pow] using hasSum_of_monomials_self Partition.powerSeriesCard
 
 theorem hasSum_card {R : Type*} [CommRing R] [UniformSpace R] [IsUniformAddGroup R]
     [NonarchimedeanRing R] [CompleteSpace R] [T2Space R]
     {q : R} (hq : IsTopologicallyNilpotent q := by simp) :
-    HasSum (fun n : ℕ ↦ (Fintype.card (Partition n) : ℤ) • q ^ n) (bInv (q; q)_∞) := by
+    HasSum (fun n : ℕ ↦ Partition.card n • q ^ n) (bInv (q; q)_∞) := by
   convert hasSum_card_powerSeries.map (intEval q) (by fun_prop) using 1 <;>
   simp [funext_iff, hq,
     IsUnit.map_bInv (.of_mul_eq_one_right _ mul_qPochhammerInf_self_powerSeries_eq_one) (intEval q),
@@ -105,7 +113,7 @@ For the version with `HasSum`, see `hasSum_card`. -/
 theorem tsum_card {R : Type*} [CommRing R] [UniformSpace R] [IsUniformAddGroup R]
     [NonarchimedeanRing R] [CompleteSpace R] [T2Space R]
     {q : R} (hq : IsTopologicallyNilpotent q := by simp) :
-    ∑' n : ℕ, (Fintype.card (Partition n) : ℤ) • q ^ n = bInv (q; q)_∞ :=
+    ∑' n : ℕ, Partition.card n • q ^ n = bInv (q; q)_∞ :=
   (hasSum_card hq).tsum_eq
 
 /-- **Euler's pentagonal number recurrence**: `p(n) = ∑_{k ≠ 0} (-1)^{k+1} p(n - k(3k-1)/2)`
@@ -114,8 +122,7 @@ theorem hasSum_negOnePow_mul_card_sub_pentagonal (n : ℕ) :
     HasSum (fun k : ℤ ↦ (k.negOnePow : ℤ) *
         if pentagonal k ≤ n then (Fintype.card (Partition (n - pentagonal k)) : ℤ) else 0)
       (if n = 0 then 1 else 0) := by
-  have hmul := hasSum_qPochhammerInf_self_powerSeries.mul_left
-    (PowerSeries.mk fun m ↦ (Fintype.card (Partition m) : ℤ))
+  have hmul := hasSum_qPochhammerInf_self_powerSeries.mul_left Partition.powerSeriesCard
   rw [mul_qPochhammerInf_self_powerSeries_eq_one] at hmul
   have hcoeff := (PowerSeries.WithPiTopology.hasSum_iff_hasSum_coeff ℤ).mp hmul n
   rw [PowerSeries.coeff_one] at hcoeff
@@ -124,6 +131,6 @@ theorem hasSum_negOnePow_mul_card_sub_pentagonal (n : ℕ) :
       (k.negOnePow • X ^ pentagonal k : ℤ⟦X⟧) = C (k.negOnePow : ℤ) * X ^ pentagonal k := by
     ext m
     simp [Units.smul_def]
-  rw [hstep, mul_left_comm, coeff_C_mul, coeff_mul_X_pow', coeff_mk]
+  rw [hstep, mul_left_comm, coeff_C_mul, coeff_mul_X_pow', ← coeff_powerSeriesCard]
 
 end Nat.Partition
