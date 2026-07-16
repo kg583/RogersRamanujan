@@ -49,200 +49,191 @@ namespace PowerSeries
 
 /-- The piece of `f` supported on the residue class `r` mod `l`: the power series obtained from
 `f` by zeroing out every coefficient at an index `n` with `n % l ≠ r`. -/
-noncomputable def dissect {R : Type*} [Semiring R] (f : R⟦X⟧) (l r : ℕ) : R⟦X⟧ :=
-  mk fun n ↦ if n % l = r % l then f.coeff n else 0
+noncomputable def dissect {R : Type*} [Semiring R] (f : R⟦X⟧) (l : ℕ+) (r : ZMod l) : R⟦X⟧ :=
+  mk fun n ↦ if (n : ZMod l) = r then f.coeff n else 0
 
 @[simp]
-theorem coeff_dissect {R : Type*} [Semiring R] (f : R⟦X⟧) (l r n : ℕ) :
-    (f.dissect l r).coeff n = if n % l = r % l then f.coeff n else 0 :=
+theorem coeff_dissect {R : Type*} [Semiring R] (f : R⟦X⟧) (l : ℕ+) (r : ZMod l) (n : ℕ) :
+    (f.dissect l r).coeff n = if (n : ZMod l) = r then f.coeff n else 0 :=
   coeff_mk _ _
 
-theorem coeff_dissect_of_mod {R : Type*} [Semiring R] (f : R⟦X⟧) {l r n : ℕ}
-    (h : n % l = r % l) : (f.dissect l r).coeff n = f.coeff n := by simp [h]
+theorem coeff_dissect_of_mod {R : Type*} [Semiring R] (f : R⟦X⟧) {l : ℕ+} {r : ZMod l} {n : ℕ}
+    (h : (n : ZMod l) = r) : (f.dissect l r).coeff n = f.coeff n := by simp [h]
 
-theorem coeff_dissect_of_not_mod {R : Type*} [Semiring R] (f : R⟦X⟧) {l r n : ℕ}
-    (h : n % l ≠ r % l) : (f.dissect l r).coeff n = 0 := by simp [h]
+theorem coeff_dissect_of_not_mod {R : Type*} [Semiring R] (f : R⟦X⟧) {l : ℕ+} {r : ZMod l} {n : ℕ}
+    (h : (n : ZMod l) ≠ r) : (f.dissect l r).coeff n = 0 := by simp [h]
 
 /-- A power series is the sum of its `l` dissection pieces, one for each residue mod `l`. -/
-theorem sum_dissect {R : Type*} [Semiring R] (f : R⟦X⟧) {l : ℕ} (hl : 0 < l := by simp) :
+theorem sum_dissect {R : Type*} [Semiring R] (f : R⟦X⟧) {l : ℕ+} :
     ∑ r ∈ Finset.range l, f.dissect l r = f := by
   ext n
   rw [map_sum, Finset.sum_eq_single (n % l)]
-  · exact coeff_dissect_of_mod f (Nat.mod_mod_of_dvd n dvd_rfl).symm
-  · exact fun r hrmem hr ↦ coeff_dissect_of_not_mod f (by
-      rw [Nat.mod_eq_of_lt (Finset.mem_range.mp hrmem)]; exact hr.symm)
-  · exact fun h ↦ absurd (Finset.mem_range.mpr (Nat.mod_lt n hl)) h
+  · exact coeff_dissect_of_mod f (ZMod.natCast_mod n l).symm
+  · refine fun r hrmem hr ↦ coeff_dissect_of_not_mod f (fun h ↦ hr ?_)
+    have := (ZMod.natCast_eq_natCast_iff' n r l).mp h
+    rw [Nat.mod_eq_of_lt (Finset.mem_range.mp hrmem)] at this
+    exact this.symm
+  · exact fun h ↦ absurd (Finset.mem_range.mpr (Nat.mod_lt n l.pos)) h
 
 /-- `f.dissect l r` reindexed along the residue class `n = l * m + r`: the power series in `m`
 with coefficients `f.coeff (l * m + r)`. -/
-noncomputable def dissectShift {R : Type*} [Semiring R] (f : R⟦X⟧) (l r : ℕ) : R⟦X⟧ :=
-  mk fun m ↦ f.coeff (l * m + r)
+noncomputable def dissectShift {R : Type*} [Semiring R] (f : R⟦X⟧) (l : ℕ+) (r : ZMod l) : R⟦X⟧ :=
+  mk fun m ↦ f.coeff (l * m + r.val)
 
 @[simp]
-theorem coeff_dissectShift {R : Type*} [Semiring R] (f : R⟦X⟧) (l r m : ℕ) :
-    (f.dissectShift l r).coeff m = f.coeff (l * m + r) :=
+theorem coeff_dissectShift {R : Type*} [Semiring R] (f : R⟦X⟧) (l : ℕ+) (r : ZMod l) (m : ℕ) :
+    (f.dissectShift l r).coeff m = f.coeff (l * m + r.val) :=
   coeff_mk _ _
 
 /-- Evaluating the `r`-mod-`l` dissection piece of `F` at a topologically nilpotent `q` is the
 sum of `F`'s coefficients along the residue class `r`, each paired with the matching power of
 `q`. -/
 theorem hasSum_intEval_dissect {R : Type*} [CommRing R] [UniformSpace R] [IsUniformAddGroup R]
-  [NonarchimedeanRing R] [CompleteSpace R] [T2Space R] (F : ℤ⟦X⟧) {l r : ℕ} (hr : r < l) {q : R}
+  [NonarchimedeanRing R] [CompleteSpace R] [T2Space R] (F : ℤ⟦X⟧) {l : ℕ+} {r : ZMod l} {q : R}
     (hq : IsTopologicallyNilpotent q := by simp) :
-    HasSum (fun m : ℕ ↦ (F.dissectShift l r).coeff m * q ^ (l * m + r))
+    HasSum (fun m : ℕ ↦ (F.dissectShift l r).coeff m * q ^ (l * m + r.val))
       (intEval q (F.dissect l r)) := by
-  have hinj : Function.Injective (fun m : ℕ ↦ l * m + r) := fun a b hab ↦ by
+  have hinj : Function.Injective (fun m : ℕ ↦ l * m + r.val) := fun a b hab ↦ by
     simp only [add_left_inj] at hab
-    exact Nat.eq_of_mul_eq_mul_left (by omega) hab
-  have hzero : ∀ n : ℕ, n ∉ Set.range (fun m : ℕ ↦ l * m + r) →
+    exact Nat.eq_of_mul_eq_mul_left (by simp) hab
+  have hzero : ∀ n : ℕ, n ∉ Set.range (fun m : ℕ ↦ l * m + r.val) →
       (F.dissect l r).coeff n * q ^ n = 0 := by
     intro n hn
-    have hne : n % l ≠ r % l := fun h ↦
-      hn ⟨n / l, show l * (n / l) + r = n from by
-        rw [Nat.mod_eq_of_lt hr] at h; exact h ▸ Nat.div_add_mod n l⟩
+    have hne : (n : ZMod l) ≠ r := by
+      intro h
+      obtain ⟨k, hk⟩ := (ZMod.natCast_eq_iff l n r).mp h
+      exact hn ⟨k, by dsimp only; omega⟩
     simp [coeff_dissect_of_not_mod F hne]
-  simpa [Function.comp_def, Nat.mod_eq_of_lt hr]
-    using (hinj.hasSum_iff hzero).mpr (hasSum_intEval hq (F.dissect l r))
+  simpa [Function.comp_def] using (hinj.hasSum_iff hzero).mpr (hasSum_intEval hq (F.dissect l r))
 
 /-- `Supp l r f`: The power series `f` over `ZMod l` is supported on the residue class
 `r` mod `l` -/
-def Supp (l r : ℕ) (f : (ZMod l)⟦X⟧) : Prop :=
-  ∀ n, n % l ≠ r % l → f.coeff n = (0 : ZMod l)
+def Supp (l : ℕ+) (r : ZMod l) (f : (ZMod l)⟦X⟧) : Prop :=
+  ∀ n : ℕ, (n : ZMod l) ≠ r → f.coeff n = 0
 
 @[simp]
-theorem Supp.add {l r : ℕ} {f g : (ZMod l)⟦X⟧} (hf : Supp l r f) (hg : Supp l r g) :
+theorem Supp.add {l : ℕ+} {r : ZMod l} {f g : (ZMod l)⟦X⟧} (hf : Supp l r f) (hg : Supp l r g) :
     Supp l r (f + g) := by
   intro n hn; simp [map_add, hf n hn, hg n hn]
 
 @[simp]
-theorem Supp.mul {l r r' : ℕ} {f g : (ZMod l)⟦X⟧} (hf : Supp l r f) (hg : Supp l r' g) :
+theorem Supp.mul {l : ℕ+} {r r' : ZMod l} {f g : (ZMod l)⟦X⟧} (hf : Supp l r f) (hg : Supp l r' g) :
     Supp l (r + r') (f * g)  := by
   intro n hn
   rw [PowerSeries.coeff_mul]
   refine Finset.sum_eq_zero fun p hp => ?_
   rw [Finset.mem_antidiagonal] at hp
-  by_cases hi : p.1 % l = r % l
-  · by_cases hj : p.2 % l = r' % l
-    · exact absurd (by rw [← hp, Nat.add_mod, hi, hj, ← Nat.add_mod]) hn
+  by_cases hi : (p.1 : ZMod l) = r
+  · by_cases hj : (p.2 : ZMod l) = r'
+    · exact absurd (by rw [← hp]; push_cast; rw [hi, hj]) hn
     · simp [hg p.2 hj]
   · simp [hf p.1 hi]
 
 @[simp]
-theorem Supp.C {l : ℕ} (c : ZMod l) : Supp l 0 (PowerSeries.C c) := by
+theorem Supp.C {l : ℕ+} (c : ZMod l) : Supp l 0 (PowerSeries.C c) := by
   intro n hn
-  have h0 : n ≠ 0 := by by_contra; rw [this, Nat.zero_mod] at hn; simp at hn
+  have h0 : n ≠ 0 := by by_contra; rw [this] at hn; simp at hn
   rw [PowerSeries.coeff_C, if_neg h0]
 
 @[simp]
-theorem Supp.pow {l r : ℕ} {f : (ZMod l)⟦X⟧} (hf : Supp l r f) : ∀ k, Supp l (k * r) (f ^ k)
+theorem Supp.pow {l : ℕ+} {r : ZMod l} {f : (ZMod l)⟦X⟧} (hf : Supp l r f) :
+    ∀ k : ℕ, Supp l (k * r) (f ^ k)
   | 0 => by simpa using Supp.C 1
-  | k + 1 => by simpa [pow_succ, Nat.succ_mul, add_comm] using (hf.pow k).mul hf
+  | k + 1 => by
+    have h := (hf.pow k).mul hf
+    rwa [← pow_succ, show (k : ZMod l) * r + r = (↑(k + 1) : ZMod l) * r by push_cast; ring] at h
 
 @[simp]
-theorem Supp.const_mul {l r : ℕ} {f : (ZMod l)⟦X⟧} (c : ZMod l) (hf : Supp l r f) :
+theorem Supp.const_mul {l : ℕ+} {r : ZMod l} {f : (ZMod l)⟦X⟧} (c : ZMod l) (hf : Supp l r f) :
     Supp l r (PowerSeries.C c * f) := by simpa using (Supp.C c).mul hf
 
 @[simp]
-theorem Supp.dissect_self {l r : ℕ} {f : (ZMod l)⟦X⟧} (hf : Supp l r f) :
+theorem Supp.dissect_self {l : ℕ+} {r : ZMod l} {f : (ZMod l)⟦X⟧} (hf : Supp l r f) :
     f.dissect l r = f := by
   ext n; rw [coeff_dissect]
-  by_cases h : n % l = r % l
+  by_cases h : (n : ZMod l) = r
   · rw [if_pos h]
   · rw [if_neg h, hf n h]
 
 @[simp]
-theorem Supp.dissect_ne {l r r' : ℕ} {f : (ZMod l)⟦X⟧} (hf : Supp l r f)
-    (hrr' : r % l ≠ r' % l) : f.dissect l r' = 0 := by
+theorem Supp.dissect_ne {l : ℕ+} {r r' : ZMod l} {f : (ZMod l)⟦X⟧} (hf : Supp l r f)
+    (hrr' : r ≠ r') : f.dissect l r' = 0 := by
   ext n; rw [coeff_dissect]
-  by_cases h : n % l = r' % l
+  by_cases h : (n : ZMod l) = r'
   · rw [if_pos h, hf n (by rw [h]; exact hrr'.symm), map_zero]
   · rw [if_neg h, map_zero]
 
 @[simp]
-theorem Supp.dissect_supp {l r : ℕ} (f : (ZMod l)⟦X⟧) :
+theorem Supp.dissect_supp {l : ℕ+} {r : ZMod l} (f : (ZMod l)⟦X⟧) :
     Supp l r (f.dissect l r) := by
   intro n hn; rw [coeff_dissect] at *; rw [if_neg hn]
 
 @[simp]
-theorem Supp.dissect_add {l r : ℕ} (f g : (ZMod l)⟦X⟧) :
+theorem Supp.dissect_add {l : ℕ+} {r : ZMod l} (f g : (ZMod l)⟦X⟧) :
     (f + g).dissect l r = f.dissect l r + g.dissect l r := by
   ext n; simp only [map_add, coeff_dissect]; split_ifs <;> simp
 
-@[simp]
-theorem Supp.dissect_sum {ι : Type*} {l r : ℕ} (s : Finset ι) (f : ι → (ZMod l)⟦X⟧) :
+theorem Supp.dissect_sum {ι : Type*} {l : ℕ+} {r : ZMod l} (s : Finset ι) (f : ι → (ZMod l)⟦X⟧) :
     (∑ i ∈ s, f i).dissect l r = ∑ i ∈ s, (f i).dissect l r := by
   classical
   induction s using Finset.induction with
   | empty => ext n; simp [coeff_dissect]
   | insert a s ha ih => rw [Finset.sum_insert ha, Finset.sum_insert ha, dissect_add, ih]
 
-/-- If `i + j = n` and `j` sits in residue class `r'` mod `l`, then `i` sits in residue class
-`r - r'` (computed safely, without truncation) mod `l` iff `n` sits in residue class `r`. -/
-private lemma dissect_mod_iff {l r r' i j n : ℕ} (hl : 0 < l) (hij : i + j = n)
-    (hj : j % l = r' % l) :
-    i % l = (r + l - r' % l) % l ↔ n % l = r % l := by
-  have h1 : (r' % l : ℕ) ≤ r + l := le_trans (Nat.mod_lt r' hl).le (Nat.le_add_left l r)
-  have hcast : ((r + l - r' % l : ℕ) : ZMod l) = (r : ZMod l) - (r' : ZMod l) := by
-    have heq : (r + l - r' % l) + r' % l = r + l := Nat.sub_add_cancel h1
-    have hc := congrArg (Nat.cast : ℕ → ZMod l) heq
-    push_cast [ZMod.natCast_mod] at hc
-    rw [ZMod.natCast_self] at hc
-    linear_combination hc
-  have hjc : (j : ZMod l) = (r' : ZMod l) := by
-    have := congrArg (Nat.cast : ℕ → ZMod l) hj
-    rwa [ZMod.natCast_mod, ZMod.natCast_mod] at this
-  constructor
-  · intro h
-    have hic : (i : ZMod l) = (r + l - r' % l : ℕ) := by
-      have := congrArg (Nat.cast : ℕ → ZMod l) h
-      rwa [ZMod.natCast_mod, ZMod.natCast_mod] at this
-    rw [hcast] at hic
-    have hnc : (n : ZMod l) = (r : ZMod l) := by
-      rw [← hij]; push_cast; rw [hic, hjc]; ring
-    rwa [ZMod.natCast_eq_natCast_iff'] at hnc
-  · intro h
-    have hnc : (n : ZMod l) = (r : ZMod l) := by
-      have := congrArg (Nat.cast : ℕ → ZMod l) h
-      rwa [ZMod.natCast_mod, ZMod.natCast_mod] at this
-    have hic : (i : ZMod l) = (r : ZMod l) - (r' : ZMod l) := by
-      have hsum : (i : ZMod l) + (j : ZMod l) = (n : ZMod l) := by rw [← hij]; push_cast; ring
-      rw [hjc, hnc] at hsum
-      linear_combination hsum
-    rw [← hcast] at hic
-    rwa [ZMod.natCast_eq_natCast_iff'] at hic
+/-- If `f` is the sum of pieces `Rf d`, one for each residue class mod `l`, and each `Rf d` is
+supported on residue class `d`, then `f`'s dissection on residue class `a` recovers `Rf a.val`. -/
+theorem dissect_eq_of_sum {l : ℕ+} {Rf : ℕ → (ZMod l)⟦X⟧} {f : (ZMod l)⟦X⟧} (a : ZMod l)
+    (hsum : f = ∑ d ∈ Finset.range l, Rf d) (hSupp : ∀ d : ℕ, d < l → Supp l d (Rf d)) :
+    f.dissect l a = Rf a.val := by
+  rw [hsum, show (∑ d ∈ Finset.range l, Rf d).dissect l a
+      = ∑ d ∈ Finset.range l, (Rf d).dissect l a from Supp.dissect_sum _ _]
+  rw [Finset.sum_eq_single a.val]
+  · have hSa : Supp l a (Rf a.val) := by
+      nth_rewrite 1 [← ZMod.natCast_zmod_val a]; exact hSupp a.val a.val_lt
+    exact Supp.dissect_self hSa
+  · intro d hdmem hd
+    refine Supp.dissect_ne (hSupp d (Finset.mem_range.mp hdmem)) (fun hcontra => hd ?_)
+    have := congrArg ZMod.val hcontra
+    rwa [ZMod.val_natCast, Nat.mod_eq_of_lt (Finset.mem_range.mp hdmem)] at this
+  · exact fun h => absurd (Finset.mem_range.mpr a.val_lt) h
 
 /-- Peeling one factor supported on a single residue class out of a dissected product. -/
-theorem Supp.dissect_mul_supp {l : ℕ} {f g : (ZMod l)⟦X⟧} {r r' : ℕ} (hl : 0 < l := by simp)
+theorem Supp.dissect_mul_supp {l : ℕ+} {r r' : ZMod l} {f g : (ZMod l)⟦X⟧}
     (hg : Supp l r' g) :
-    (f * g).dissect l r = (f.dissect l ((r + l - r' % l) % l)) * g := by
+    (f * g).dissect l r = (f.dissect l (r - r')) * g := by
   ext n
   rw [coeff_dissect, PowerSeries.coeff_mul, PowerSeries.coeff_mul]
-  by_cases hn : n % l = r % l
+  by_cases hn : (n : ZMod l) = r
   · rw [if_pos hn]
     refine Finset.sum_congr rfl fun p hp => ?_
     rw [Finset.mem_antidiagonal] at hp
-    rw [coeff_dissect, Nat.mod_mod_of_dvd (r + l - r' % l) dvd_rfl]
+    rw [coeff_dissect]
     by_cases hp2 : g.coeff p.2 = 0
     · rw [hp2, mul_zero, mul_zero]
-    · have hjr : p.2 % l = r' % l := by by_contra hne; exact hp2 (hg p.2 hne)
-      rw [if_pos ((dissect_mod_iff hl hp hjr).mpr hn)]
+    · have hjr : (p.2 : ZMod l) = r' := by by_contra hne; exact hp2 (hg p.2 hne)
+      have hc := congrArg (Nat.cast : ℕ → ZMod l) hp
+      push_cast at hc
+      rw [hn, hjr] at hc
+      rw [if_pos (by linear_combination hc)]
   · rw [if_neg hn]
     refine (Finset.sum_eq_zero fun p hp => ?_).symm
     rw [Finset.mem_antidiagonal] at hp
-    rw [coeff_dissect, Nat.mod_mod_of_dvd (r + l - r' % l) dvd_rfl]
-    by_cases hp1 : p.1 % l = (r + l - r' % l) % l
+    rw [coeff_dissect]
+    by_cases hp1 : (p.1 : ZMod l) = r - r'
     · rw [if_pos hp1]
       by_cases hp2 : g.coeff p.2 = 0
       · rw [hp2, mul_zero]
-      · have hjr : p.2 % l = r' % l := by by_contra hne; exact hp2 (hg p.2 hne)
-        exact absurd ((dissect_mod_iff hl hp hjr).mp hp1) hn
+      · have hjr : (p.2 : ZMod l) = r' := by by_contra hne; exact hp2 (hg p.2 hne)
+        have hc := congrArg (Nat.cast : ℕ → ZMod l) hp
+        push_cast at hc
+        exact absurd (by rw [← hc, hp1, hjr]; ring) hn
     · rw [if_neg hp1, zero_mul]
 
-private theorem Supp.dissect_mul_dissect_sum {l r : ℕ} (f g : (ZMod l)⟦X⟧) (hl : 0 < l := by simp) :
+theorem Supp.dissect_mul_dissect_sum {l : ℕ+} {r : ZMod l} (f g : (ZMod l)⟦X⟧) :
     (f * g).dissect l r
-      = ∑ r' ∈ Finset.range l, f.dissect l ((r + l - r' % l) % l) * g.dissect l r' := by
-  conv_lhs => rw [← sum_dissect g hl, Finset.mul_sum, Supp.dissect_sum]
-  exact Finset.sum_congr rfl fun r' _ => Supp.dissect_mul_supp hl (Supp.dissect_supp g)
+      = ∑ r' ∈ Finset.range l, (f.dissect l (r - r')) * g.dissect l r' := by
+  conv_lhs => rw [← sum_dissect g (l := l), Finset.mul_sum, Supp.dissect_sum]
+  exact Finset.sum_congr rfl fun r' _ => Supp.dissect_mul_supp (Supp.dissect_supp g)
 
 @[simp]
 theorem coeff_mul_eq_zero_of_forall {R : Type*} [CommSemiring R] (f g : R⟦X⟧) (m : ℕ)
@@ -428,7 +419,7 @@ private lemma map_powerSeriesCard_zmod_five_eq :
     ring
   exact (hEu.pow 10).eq_mul_bInv_of_mul_eq hFE10
 
-private theorem coeff_map_powerSeriesCard_five_mul_add_four (n : ℕ) :
+theorem coeff_map_powerSeriesCard_five_mul_add_four (n : ℕ) :
     (PowerSeries.map (Int.castRingHom (ZMod 5)) powerSeriesCard).coeff (5 * n + 4) = 0 := by
   rw [map_powerSeriesCard_zmod_five_eq]
   refine coeff_mul_eq_zero_of_forall _ _ (5 * n + 4) fun i j hij => ?_
@@ -446,8 +437,8 @@ vanishing, modulo `5`, of the power series `∑ p(5n + 4) qⁿ` obtained by diss
 theorem dissectShift_five_four_map_zmod_five_powerSeries :
     PowerSeries.map (Int.castRingHom (ZMod 5)) (powerSeriesCard.dissectShift 5 4) = 0 := by
   ext n
-  simpa [PowerSeries.coeff_map, coeff_dissectShift] using
-    coeff_map_powerSeriesCard_five_mul_add_four n
+  simp only [PowerSeries.coeff_map, coeff_dissectShift]
+  exact coeff_map_powerSeriesCard_five_mul_add_four n
 
 /-- **Ramanujan's congruence mod 5**, as a divisibility statement: `5 ∣ p(5n + 4)` for every `n`. -/
 theorem five_dvd_card_five_mul_add_four (n : ℕ) :
@@ -531,7 +522,7 @@ private lemma map_powerSeriesCard_zmod_seven_eq :
     ring
   exact (hEu.pow 7).eq_mul_bInv_of_mul_eq hFE7
 
-private theorem coeff_map_powerSeriesCard_seven_mul_add_five (n : ℕ) :
+theorem coeff_map_powerSeriesCard_seven_mul_add_five (n : ℕ) :
     (PowerSeries.map (Int.castRingHom (ZMod 7)) powerSeriesCard).coeff (7 * n + 5) = 0 := by
   rw [map_powerSeriesCard_zmod_seven_eq]
   refine coeff_mul_eq_zero_of_forall _ _ (7 * n + 5) fun i j hij => ?_
@@ -550,8 +541,8 @@ vanishing, modulo `7`, of the power series `∑ p(7n + 5) qⁿ`. -/
 theorem dissectShift_seven_five_map_zmod_seven_powerSeries :
     PowerSeries.map (Int.castRingHom (ZMod 7)) (powerSeriesCard.dissectShift 7 5) = 0 := by
   ext n
-  simpa [PowerSeries.coeff_map, coeff_dissectShift] using
-    coeff_map_powerSeriesCard_seven_mul_add_five n
+  simp only [PowerSeries.coeff_map, coeff_dissectShift]
+  exact coeff_map_powerSeriesCard_seven_mul_add_five n
 
 /-- **Ramanujan's congruence mod 7**, as a divisibility statement: `7 ∣ p(7n + 5)` for every `n`. -/
 theorem seven_dvd_card_seven_mul_add_five (n : ℕ) :
@@ -802,45 +793,38 @@ private lemma hS3_eq :
     (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3 = ∑ d ∈ Finset.range 11, K3c d := by
   simp only [Finset.sum_range_succ, Finset.sum_range_zero, K3c]; ring
 
-private lemma dissect_eq_of_sum {Rf : ℕ → (ZMod 11)⟦X⟧} {Sp : (ZMod 11)⟦X⟧} {a : ℕ}
-    (hsum : Sp = ∑ d ∈ Finset.range 11, Rf d) (hSupp : ∀ d, d < 11 → Supp 11 d (Rf d))
-    (ha : a < 11) : Sp.dissect 11 a = Rf a := by
-  rw [hsum, Supp.dissect_sum]
-  rw [Finset.sum_eq_single a]
-  · exact Supp.dissect_self (hSupp a ha)
-  · intro d hdmem hd
-    refine Supp.dissect_ne (hSupp d (Finset.mem_range.mp hdmem)) ?_
-    rw [Nat.mod_eq_of_lt (Finset.mem_range.mp hdmem), Nat.mod_eq_of_lt ha]
-    exact hd
-  · exact fun h => absurd (Finset.mem_range.mpr ha) h
+private lemma natCast_ne (l : ℕ+) {r k : ℕ} (hr : r < l) (hk : k < l) (h : r ≠ k) :
+    (r : ZMod l) ≠ (k : ZMod l) := by
+  rw [Ne, ZMod.natCast_eq_natCast_iff', Nat.mod_eq_of_lt hr, Nat.mod_eq_of_lt hk]
+  exact h
 
-private lemma Jd_eq_zero {r : ℕ} (h0 : (r : ZMod 11) ≠ 0) (h1 : (r : ZMod 11) ≠ 1)
-    (h3 : (r : ZMod 11) ≠ 3) (h6 : (r : ZMod 11) ≠ 6) (h10 : (r : ZMod 11) ≠ 10) : Jd r = 0 := by
-  rw [Jd]; ext n; rw [coeff_dissect]
-  by_cases h : n % 11 = r % 11
-  · rw [if_pos h]
-    have hnr : (n : ZMod 11) = (r : ZMod 11) := by grind
+private lemma Jd_eq_zero {r : ℕ} (h : r < 11 ∧ r ≠ 0 ∧ r ≠ 1 ∧ r ≠ 3 ∧ r ≠ 6 ∧ r ≠ 10) :
+    Jd r = 0 := by
+  obtain ⟨hr, h0, h1, h3, h6, h10⟩ := h
+  have z0 : (r : ZMod 11) ≠ 0 := natCast_ne 11 hr (by norm_num) h0
+  have z1 : (r : ZMod 11) ≠ 1 := natCast_ne 11 hr (by norm_num) h1
+  have z3 : (r : ZMod 11) ≠ 3 := natCast_ne 11 hr (by norm_num) h3
+  have z6 : (r : ZMod 11) ≠ 6 := natCast_ne 11 hr (by norm_num) h6
+  have z10 : (r : ZMod 11) ≠ 10 := natCast_ne 11 hr (by norm_num) h10
+  rw [Jd]; ext n; rw [coeff_dissect, map_zero]
+  split_ifs with h
+  · have hnr : (n : ZMod 11) = (r : ZMod 11) := h
     refine coeff_qPochhammerInf_zmod_eleven_pow_three_eq_zero n ?_ ?_ ?_ ?_ ?_ <;>
       rw [hnr] <;> assumption
-  · rw [if_neg h, map_zero]
+  · rfl
 
 /-- `(X;X)_∞^3` over `ZMod 11` splits as the sum of its dissection pieces on the residues
 `{0, 1, 3, 6, 10}`. -/
 private lemma hEz3 : ((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 3 = Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10 := by
-  have e2 : Jd 2 = 0 := Jd_eq_zero (by decide) (by decide) (by decide) (by decide)
-    (by decide)
-  have e4 : Jd 4 = 0 := Jd_eq_zero (by decide) (by decide) (by decide) (by decide)
-    (by decide)
-  have e5 : Jd 5 = 0 := Jd_eq_zero (by decide) (by decide) (by decide) (by decide)
-    (by decide)
-  have e7 : Jd 7 = 0 := Jd_eq_zero (by decide) (by decide) (by decide) (by decide)
-    (by decide)
-  have e8 : Jd 8 = 0 := Jd_eq_zero (by decide) (by decide) (by decide) (by decide)
-    (by decide)
-  have e9 : Jd 9 = 0 := Jd_eq_zero (by decide) (by decide) (by decide) (by decide)
-    (by decide)
-  have h := sum_dissect (((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 3) (by norm_num : (0 : ℕ) < 11)
-  simp only [Finset.sum_range_succ, Finset.sum_range_zero] at h
+  have e2 : Jd 2 = 0 := Jd_eq_zero (by decide)
+  have e4 : Jd 4 = 0 := Jd_eq_zero (by decide)
+  have e5 : Jd 5 = 0 := Jd_eq_zero (by decide)
+  have e7 : Jd 7 = 0 := Jd_eq_zero (by decide)
+  have e8 : Jd 8 = 0 := Jd_eq_zero (by decide)
+  have e9 : Jd 9 = 0 := Jd_eq_zero (by decide)
+  have h := sum_dissect (((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 3) (l := 11)
+  simp only [show ((11 : ℕ+) : ℕ) = 11 from rfl, Finset.sum_range_succ,
+    Finset.sum_range_zero] at h
   rw [← h]
   change (0 : (ZMod 11)⟦X⟧) + Jd 0 + Jd 1 + Jd 2 + Jd 3 + Jd 4 + Jd 5 + Jd 6 + Jd 7 + Jd 8 + Jd 9
     + Jd 10 = _
@@ -854,9 +838,10 @@ private lemma dissect_Ez12_eq_zero {r : ℕ} (h0 : (r : ZMod 11) ≠ 0) (h1 : (r
   have hfrob : ((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 12 = (X ^ 11; X ^ 11)_∞ * (X; X)_∞ := by
     rw [show (12 : ℕ) = 11 + 1 from rfl, pow_succ,
       qPochhammerInf_zmod_p_self_pow_p_zmod_p 11 Nat.prime_eleven]
-  rw [hfrob]; ext n; rw [coeff_dissect]
-  by_cases h : n % 11 = r % 11
-  · rw [if_pos h]
+  rw [hfrob]; ext n; rw [coeff_dissect, map_zero]
+  split_ifs with h
+  · have hnr : n % 11 = r % 11 :=
+      (ZMod.natCast_eq_natCast_iff' n r 11).mp (h : (n : ZMod 11) = (r : ZMod 11))
     refine coeff_mul_eq_zero_of_forall _ _ n fun i j hij => ?_
     by_cases hi : 11 ∣ i
     · right
@@ -867,38 +852,57 @@ private lemma dissect_Ez12_eq_zero {r : ℕ} (h0 : (r : ZMod 11) ≠ 0) (h1 : (r
       refine coeff_qPochhammerInf_zmod_eleven_eq_zero j ?_ ?_ ?_ ?_ ?_ ?_ <;>
         rw [hjr] <;> assumption
     · exact Or.inl (coeff_qPochhammerInf_zmod_p_pow_p 11 Nat.prime_eleven i hi)
-  · rw [if_neg h, map_zero]
+  · rfl
 
-private lemma R4c_eq_zero {r : ℕ} (hr : r < 11) (h0 : (r : ZMod 11) ≠ 0) (h1 : (r : ZMod 11) ≠ 1)
-    (h2 : (r : ZMod 11) ≠ 2) (h4 : (r : ZMod 11) ≠ 4) (h5 : (r : ZMod 11) ≠ 5)
-    (h7 : (r : ZMod 11) ≠ 7) : R4c r = 0 := by
-  rw [← dissect_eq_of_sum hS4_eq Supp_R4c hr,
+private lemma R4c_eq_zero {r : ℕ}
+    (h : r < 11 ∧ r ≠ 0 ∧ r ≠ 1 ∧ r ≠ 2 ∧ r ≠ 4 ∧ r ≠ 5 ∧ r ≠ 7) : R4c r = 0 := by
+  obtain ⟨hr, h0, h1, h2, h4, h5, h7⟩ := h
+  have z0 : (r : ZMod 11) ≠ 0 := natCast_ne 11 hr (by norm_num) h0
+  have z1 : (r : ZMod 11) ≠ 1 := natCast_ne 11 hr (by norm_num) h1
+  have z2 : (r : ZMod 11) ≠ 2 := natCast_ne 11 hr (by norm_num) h2
+  have z4 : (r : ZMod 11) ≠ 4 := natCast_ne 11 hr (by norm_num) h4
+  have z5 : (r : ZMod 11) ≠ 5 := natCast_ne 11 hr (by norm_num) h5
+  have z7 : (r : ZMod 11) ≠ 7 := natCast_ne 11 hr (by norm_num) h7
+  have hval : (r : ZMod (11 : ℕ+)).val = r := by
+    rw [ZMod.val_natCast]; exact Nat.mod_eq_of_lt hr
+  rw [← hval, ← dissect_eq_of_sum (r : ZMod (11 : ℕ+)) hS4_eq Supp_R4c,
     show (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4 = (((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 3) ^ 4 by
       rw [hEz3],
     show (((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 3) ^ 4 = ((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 12 by ring]
-  exact dissect_Ez12_eq_zero h0 h1 h2 h4 h5 h7
+  exact dissect_Ez12_eq_zero z0 z1 z2 z4 z5 z7
 
 private lemma dissect_Ez21_six_eq_zero :
     ((((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 3) ^ 7).dissect 11 6 = 0 := by
-  have hR3 : R4c 3 = 0 := R4c_eq_zero (by norm_num) (by decide) (by decide) (by decide)
-    (by decide) (by decide) (by decide)
-  have hR6 : R4c 6 = 0 := R4c_eq_zero (by norm_num) (by decide) (by decide) (by decide)
-    (by decide) (by decide) (by decide)
-  have hR8 : R4c 8 = 0 := R4c_eq_zero (by norm_num) (by decide) (by decide) (by decide)
-    (by decide) (by decide) (by decide)
-  have hR9 : R4c 9 = 0 := R4c_eq_zero (by norm_num) (by decide) (by decide) (by decide)
-    (by decide) (by decide) (by decide)
-  have hR10 : R4c 10 = 0 := R4c_eq_zero (by norm_num) (by decide) (by decide) (by decide)
-    (by decide) (by decide) (by decide)
-  have hR : ∀ a, a < 11 → ((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4).dissect 11 a = R4c a :=
-    fun a ha => dissect_eq_of_sum hS4_eq Supp_R4c ha
-  have hK : ∀ b, b < 11 → ((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3).dissect 11 b = K3c b :=
-    fun b hb => dissect_eq_of_sum hS3_eq Supp_K3c hb
+  have hR3 : R4c 3 = 0 := R4c_eq_zero (by decide)
+  have hR6 : R4c 6 = 0 := R4c_eq_zero (by decide)
+  have hR8 : R4c 8 = 0 := R4c_eq_zero (by decide)
+  have hR9 : R4c 9 = 0 := R4c_eq_zero (by decide)
+  have hR10 : R4c 10 = 0 := R4c_eq_zero (by decide)
+  have hR : ∀ a : ℕ, a < 11 → ((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4).dissect 11 a = R4c a :=
+    fun a ha => by
+      have := dissect_eq_of_sum (a : ZMod (11 : ℕ+)) hS4_eq Supp_R4c
+      rw [ZMod.val_natCast] at this
+      rwa [show a % ((11 : ℕ+) : ℕ) = a from Nat.mod_eq_of_lt ha] at this
+  have hK : ∀ b : ℕ, b < 11 → ((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3).dissect 11 b = K3c b :=
+    fun b hb => by
+      have := dissect_eq_of_sum (b : ZMod (11 : ℕ+)) hS3_eq Supp_K3c
+      rw [ZMod.val_natCast] at this
+      rwa [show b % ((11 : ℕ+) : ℕ) = b from Nat.mod_eq_of_lt hb] at this
   rw [hEz3, show (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 7 = (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4
       * (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3 from by ring,
-    Supp.dissect_mul_dissect_sum _]
-  simp only [Finset.sum_range_succ, Finset.sum_range_zero, Nat.reduceAdd, Nat.reduceSub,
-    Nat.reduceMod]
+    show (((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4) * ((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3)
+        ).dissect 11 6
+      = ∑ r' ∈ Finset.range 11, (((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4).dissect 11 (6 - r'))
+        * ((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3).dissect 11 r' from
+      Supp.dissect_mul_dissect_sum _ _]
+  have hsub : ∀ r' : ℕ, r' < 11 →
+      (6 : ZMod (11 : ℕ+)) - ((r' : ℕ) : ZMod (11 : ℕ+)) = (((17 - r') % 11 : ℕ) : ZMod (11 : ℕ+)) := by
+    decide
+  simp only [Finset.sum_range_succ, Finset.sum_range_zero]
+  simp only [hsub 0 (by norm_num), hsub 1 (by norm_num), hsub 2 (by norm_num),
+    hsub 3 (by norm_num), hsub 4 (by norm_num), hsub 5 (by norm_num), hsub 6 (by norm_num),
+    hsub 7 (by norm_num), hsub 8 (by norm_num), hsub 9 (by norm_num), hsub 10 (by norm_num),
+    Nat.reduceSub, Nat.reduceMod]
   rw [hR 6 (by norm_num), hR 5 (by norm_num), hR 4 (by norm_num), hR 3 (by norm_num),
     hR 2 (by norm_num), hR 1 (by norm_num), hR 0 (by norm_num), hR 10 (by norm_num),
     hR 9 (by norm_num), hR 8 (by norm_num), hR 7 (by norm_num), hK 0 (by norm_num),
@@ -974,13 +978,18 @@ private lemma map_powerSeriesCard_zmod_eleven_eq :
     ring
   exact (hEu.pow 22).eq_mul_bInv_of_mul_eq hFE22
 
-private theorem coeff_map_powerSeriesCard_eleven_mul_add_six (n : ℕ) :
+theorem coeff_map_powerSeriesCard_eleven_mul_add_six (n : ℕ) :
     (PowerSeries.map (Int.castRingHom (ZMod 11)) powerSeriesCard).coeff (11 * n + 6) = 0 := by
   rw [map_powerSeriesCard_zmod_eleven_eq]
   refine coeff_mul_eq_zero_of_forall _ _ (11 * n + 6) fun i j hij => ?_
   by_cases hj : 11 ∣ j
   · refine Or.inl ?_
-    have hi6 : i % 11 = 6 := by obtain ⟨c, rfl⟩ := hj; omega
+    have hi6 : (i : ZMod (11 : ℕ+)) = 6 := by
+      obtain ⟨c, rfl⟩ := hj
+      have hc := congrArg (Nat.cast (R := ZMod (11 : ℕ+))) hij
+      simp only [Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat] at hc
+      have h11 : (11 : ZMod (11 : ℕ+)) = 0 := by decide
+      linear_combination hc + ((n : ZMod (11 : ℕ+)) - (c : ZMod (11 : ℕ+))) * h11
     have hc := congrArg (PowerSeries.coeff i) dissect_Ez21_six_eq_zero
     rwa [coeff_dissect, if_pos hi6, map_zero] at hc
   · exact Or.inr (coeff_bInv_qPochhammerInf_zmod11_pow_22 j hj)
@@ -990,8 +999,8 @@ vanishing, modulo `11`, of the power series `∑ p(11n + 6) qⁿ`. -/
 theorem dissectShift_eleven_six_map_zmod_eleven_powerSeries :
     PowerSeries.map (Int.castRingHom (ZMod 11)) (powerSeriesCard.dissectShift 11 6) = 0 := by
   ext n
-  simpa [PowerSeries.coeff_map, coeff_dissectShift] using
-    coeff_map_powerSeriesCard_eleven_mul_add_six n
+  simp only [PowerSeries.coeff_map, coeff_dissectShift]
+  exact coeff_map_powerSeriesCard_eleven_mul_add_six n
 
 /-- **Ramanujan's congruence mod 11**, as a divisibility statement: `11 ∣ p(11n + 6)` for
 every `n`. -/
