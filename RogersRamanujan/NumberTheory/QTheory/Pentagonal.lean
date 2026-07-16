@@ -1,5 +1,11 @@
 module
 
+public import Mathlib.Algebra.Ring.NegOnePow
+public import Mathlib.Combinatorics.Enumerative.Partition.Basic
+public import Mathlib.Combinatorics.Enumerative.Partition.Glaisher
+public import Mathlib.Combinatorics.Enumerative.Pentagonal
+import Mathlib.RingTheory.MvPowerSeries.LinearTopology
+
 public import RogersRamanujan.Algebra.Group.Units.Basic
 import RogersRamanujan.Algebra.Group.Units.Hom
 import RogersRamanujan.Combinatorics.Enumerative.Pentagonal
@@ -8,11 +14,6 @@ import RogersRamanujan.NumberTheory.QTheory.JacobiTripleProduct.Basic
 import RogersRamanujan.NumberTheory.QTheory.StrongNonarchimedean
 public import RogersRamanujan.RingTheory.PowerSeries.DiscreteTopology
 import RogersRamanujan.RingTheory.PowerSeries.Evaluation
-public import Mathlib.Algebra.Ring.NegOnePow
-public import Mathlib.Combinatorics.Enumerative.Partition.Basic
-public import Mathlib.Combinatorics.Enumerative.Partition.Glaisher
-public import Mathlib.Combinatorics.Enumerative.Pentagonal
-import Mathlib.RingTheory.MvPowerSeries.LinearTopology
 
 /-! # Pentagonal number theorem
 
