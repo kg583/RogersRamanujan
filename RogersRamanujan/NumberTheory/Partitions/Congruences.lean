@@ -25,12 +25,16 @@ partition function.
 ## Main definitions
 
 * `PowerSeries.dissect`: the piece of a power series supported on one residue class mod `l`
-* `PowerSeries.dissectShift`: that piece, reindexed as a power series in its own right
+* `PowerSeries.Supp`: a power series which is supported on a residue class `r` mod `l`
 * `Nat.Partition.powerSeriesCard`: the power series `∑ p(n) qⁿ`
 
 ## Main results
 
 * `PowerSeries.sum_dissect`: a power series is the sum of its `l` dissection pieces
+* `PowerSeries.Supp.dissect_eq_of_sum`: dissecting a sum of power series supported on every
+  `r` mod `l` yields one of the addends
+* `qPochhammerInf_zmod_p_self_pow_p`: `((X; X)_∞)^p = (X^p; X^p)_∞` mod `p` a prime
+* `coeff_bInv_qPochhammerInf_pow_p_zmod_p`: `((X; X)_∞)^-p` is supported only on `0` mod `p`
 * `Nat.Partition.dissectShift_five_four_map_zmod_five`,
   `Nat.Partition.dissectShift_seven_five_map_zmod_seven`,
   `Nat.Partition.dissectShift_eleven_six_map_zmod_eleven`:
@@ -316,7 +320,7 @@ theorem map_powerSeriesCard_zmod (l : ℕ) :
   refine h2.unique (h1.congr_fun fun n => ?_)
   rw [zsmul_eq_mul, ← map_intCast (PowerSeries.C : ZMod l →+* (ZMod l)⟦X⟧)]
 
-private theorem coeff_bInv_qPochhammerInf_pow_p_zmod_p (p : ℕ) (hp : Nat.Prime p) (m : ℕ)
+theorem coeff_bInv_qPochhammerInf_pow_p_zmod_p (p : ℕ) (hp : Nat.Prime p) (m : ℕ)
     (hm : ¬ (p ∣ m)) : (bInv ((X ^ p; X ^ p)_∞ : (ZMod p)⟦X⟧)).coeff m = 0 := by
   have hfun : (fun n : ℕ => Partition.card n • (X ^ p : (ZMod p)⟦X⟧) ^ n)
       = fun n => C ((Partition.card n : ℤ) : ZMod p) * (X ^ p) ^ n := by
@@ -332,7 +336,7 @@ private theorem coeff_bInv_qPochhammerInf_pow_p_zmod_p (p : ℕ) (hp : Nat.Prime
   refine Finset.sum_eq_zero fun i _ => ?_
   rw [coeff_C_mul, ← pow_mul, coeff_X_pow, if_neg (fun h => hm ⟨i, h⟩), mul_zero]
 
-private theorem coeff_bInv_qPochhammerInf_zmod_p_sq (p : ℕ) (hp : Nat.Prime p)
+theorem coeff_bInv_qPochhammerInf_zmod_p_sq (p : ℕ) (hp : Nat.Prime p)
     (m : ℕ) (hm : ¬ (p ∣ m)) : (bInv (((X; X)_∞ : (ZMod p)⟦X⟧) ^ (2 * p))).coeff m = 0 := by
   have hE := (qPochhammerInf_zmod_p_self_pow_p p hp).symm
   have hEu : IsUnit ((X ^ p; X ^ p)_∞ : (ZMod p)⟦X⟧) := by
@@ -782,7 +786,6 @@ private lemma Supp_K3c (d : ℕ) (hd : d < 11) : Supp 11 d (K3c d) := by
   · exact ((((Supp_n3.mul h1).mul (h10.pow 2)).add (((Supp_n6.mul h1).mul h3).mul h6)).add
       ((Supp_n3.mul (h0.pow 2)).mul h10))
 
-
 private lemma hS4_eq :
     (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4 = ∑ d ∈ Finset.range 11, R4c d := by
   simp only [Finset.sum_range_succ, Finset.sum_range_zero, R4c]; ring
@@ -890,7 +893,7 @@ private lemma dissect_Ez21_six_eq_zero :
       6 - ((r' : ℕ) : ZMod (11 : ℕ+)) = (((17 - r') % 11 : ℕ) : ZMod (11 : ℕ+)) := by
     decide
   rw [hEz3, show (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 7 = (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4
-      * (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3 from by ring,
+      * (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3 by ring,
     show (((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4) * ((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3)
         ).dissect 11 6
       = ∑ r' ∈ Finset.range 11, (((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4).dissect 11 (6 - r'))
