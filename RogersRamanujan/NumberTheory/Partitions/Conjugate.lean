@@ -79,4 +79,8 @@ theorem conjugate_length_eq_maxPart {n : ℕ} (p : Partition n) :
 
 protected abbrev rank {n : ℕ} (p : Partition n) := p.maxPart - p.length
 
+protected abbrev crank {n : ℕ} (p : Partition n) :=
+  let w := p.parts.count 1
+  if w = 0 then p.maxPart else w - (p.parts.filter (· > w)).card
+
 end Nat.Partition
