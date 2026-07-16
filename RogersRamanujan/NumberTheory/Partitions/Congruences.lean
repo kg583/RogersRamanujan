@@ -125,7 +125,7 @@ theorem coeff_map_powerSeriesCard_five_mul_add_four (n : ℕ) :
           rw [(ZMod.natCast_eq_zero_iff j 5).mpr hj, add_zero]
       _ = ((5 * n + 4 : ℕ) : ZMod 5) := by rw [← Nat.cast_add, hij]
       _ = 4 := by grind
-  · exact Or.inr (coeff_bInv_qPochhammerInf_zmod_p_sq 5 Nat.prime_five j hj)
+  · exact Or.inr (coeff_bInv_qPochhammerInf_zmod_p_pow 5 Nat.prime_five 2 j hj)
 
 /-- **Ramanujan's congruence mod 5**: `p(5n + 4) ≡ 0 (mod 5)` for every `n`, phrased as the
 vanishing, modulo `5`, of the power series `∑ p(5n + 4) qⁿ` obtained by dissecting
@@ -661,7 +661,7 @@ theorem coeff_map_powerSeriesCard_eleven_mul_add_six (n : ℕ) :
       linear_combination hc + ((n : ZMod (11 : ℕ+)) - (c : ZMod (11 : ℕ+))) * h11
     have hc := congrArg (PowerSeries.coeff i) dissect_Ez21_six_eq_zero
     rwa [coeff_dissect, if_pos hi6, map_zero] at hc
-  · exact Or.inr (coeff_bInv_qPochhammerInf_zmod_p_sq 11 Nat.prime_eleven j hj)
+  · exact Or.inr (coeff_bInv_qPochhammerInf_zmod_p_pow 11 Nat.prime_eleven 2 j hj)
 
 /-- **Ramanujan's congruence mod 11**: `p(11n + 6) ≡ 0 (mod 11)` for every `n`, phrased as the
 vanishing, modulo `11`, of the power series `∑ p(11n + 6) qⁿ`. -/
