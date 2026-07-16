@@ -111,13 +111,15 @@ theorem hasSum_intEval_dissect {R : Type*} [CommRing R] [UniformSpace R] [IsUnif
 def Supp (l : ℕ+) (r : ZMod l) (f : (ZMod l)⟦X⟧) : Prop :=
   ∀ n : ℕ, (n : ZMod l) ≠ r → f.coeff n = 0
 
+namespace Supp
+
 @[simp]
-theorem Supp.add {l : ℕ+} {r : ZMod l} {f g : (ZMod l)⟦X⟧} (hf : Supp l r f) (hg : Supp l r g) :
+theorem add {l : ℕ+} {r : ZMod l} {f g : (ZMod l)⟦X⟧} (hf : Supp l r f) (hg : Supp l r g) :
     Supp l r (f + g) := by
   intro n hn; simp [map_add, hf n hn, hg n hn]
 
 @[simp]
-theorem Supp.mul {l : ℕ+} {r r' : ZMod l} {f g : (ZMod l)⟦X⟧} (hf : Supp l r f) (hg : Supp l r' g) :
+theorem mul {l : ℕ+} {r r' : ZMod l} {f g : (ZMod l)⟦X⟧} (hf : Supp l r f) (hg : Supp l r' g) :
     Supp l (r + r') (f * g)  := by
   intro n hn
   rw [PowerSeries.coeff_mul]
@@ -130,13 +132,13 @@ theorem Supp.mul {l : ℕ+} {r r' : ZMod l} {f g : (ZMod l)⟦X⟧} (hf : Supp l
   · simp [hf p.1 hi]
 
 @[simp]
-theorem Supp.C {l : ℕ+} (c : ZMod l) : Supp l 0 (PowerSeries.C c) := by
+theorem C {l : ℕ+} (c : ZMod l) : Supp l 0 (PowerSeries.C c) := by
   intro n hn
   have h0 : n ≠ 0 := by by_contra; rw [this] at hn; simp at hn
   rw [PowerSeries.coeff_C, if_neg h0]
 
 @[simp]
-theorem Supp.pow {l : ℕ+} {r : ZMod l} {f : (ZMod l)⟦X⟧} (hf : Supp l r f) :
+theorem pow {l : ℕ+} {r : ZMod l} {f : (ZMod l)⟦X⟧} (hf : Supp l r f) :
     ∀ k : ℕ, Supp l (k * r) (f ^ k)
   | 0 => by simpa using Supp.C 1
   | k + 1 => by
@@ -144,11 +146,11 @@ theorem Supp.pow {l : ℕ+} {r : ZMod l} {f : (ZMod l)⟦X⟧} (hf : Supp l r f)
     rwa [← pow_succ, show (k : ZMod l) * r + r = (↑(k + 1) : ZMod l) * r by push_cast; ring] at h
 
 @[simp]
-theorem Supp.const_mul {l : ℕ+} {r : ZMod l} {f : (ZMod l)⟦X⟧} (c : ZMod l) (hf : Supp l r f) :
+theorem const_mul {l : ℕ+} {r : ZMod l} {f : (ZMod l)⟦X⟧} (c : ZMod l) (hf : Supp l r f) :
     Supp l r (PowerSeries.C c * f) := by simpa using (Supp.C c).mul hf
 
 @[simp]
-theorem Supp.dissect_self {l : ℕ+} {r : ZMod l} {f : (ZMod l)⟦X⟧} (hf : Supp l r f) :
+theorem dissect_self {l : ℕ+} {r : ZMod l} {f : (ZMod l)⟦X⟧} (hf : Supp l r f) :
     f.dissect l r = f := by
   ext n; rw [coeff_dissect]
   by_cases h : (n : ZMod l) = r
@@ -156,7 +158,7 @@ theorem Supp.dissect_self {l : ℕ+} {r : ZMod l} {f : (ZMod l)⟦X⟧} (hf : Su
   · rw [if_neg h, hf n h]
 
 @[simp]
-theorem Supp.dissect_ne {l : ℕ+} {r r' : ZMod l} {f : (ZMod l)⟦X⟧} (hf : Supp l r f)
+theorem dissect_ne {l : ℕ+} {r r' : ZMod l} {f : (ZMod l)⟦X⟧} (hf : Supp l r f)
     (hrr' : r ≠ r') : f.dissect l r' = 0 := by
   ext n; rw [coeff_dissect]
   by_cases h : (n : ZMod l) = r'
@@ -164,16 +166,16 @@ theorem Supp.dissect_ne {l : ℕ+} {r r' : ZMod l} {f : (ZMod l)⟦X⟧} (hf : S
   · rw [if_neg h, map_zero]
 
 @[simp]
-theorem Supp.dissect_supp {l : ℕ+} {r : ZMod l} (f : (ZMod l)⟦X⟧) :
+theorem dissect_supp {l : ℕ+} {r : ZMod l} (f : (ZMod l)⟦X⟧) :
     Supp l r (f.dissect l r) := by
   intro n hn; rw [coeff_dissect] at *; rw [if_neg hn]
 
 @[simp]
-theorem Supp.dissect_add {l : ℕ+} {r : ZMod l} (f g : (ZMod l)⟦X⟧) :
+theorem dissect_add {l : ℕ+} {r : ZMod l} (f g : (ZMod l)⟦X⟧) :
     (f + g).dissect l r = f.dissect l r + g.dissect l r := by
   ext n; simp only [map_add, coeff_dissect]; split_ifs <;> simp
 
-theorem Supp.dissect_sum {ι : Type*} {l : ℕ+} {r : ZMod l} (s : Finset ι) (f : ι → (ZMod l)⟦X⟧) :
+theorem dissect_sum {ι : Type*} {l : ℕ+} {r : ZMod l} (s : Finset ι) (f : ι → (ZMod l)⟦X⟧) :
     (∑ i ∈ s, f i).dissect l r = ∑ i ∈ s, (f i).dissect l r := by
   classical
   induction s using Finset.induction with
@@ -186,19 +188,19 @@ theorem dissect_eq_of_sum {l : ℕ+} {Rf : ℕ → (ZMod l)⟦X⟧} {f : (ZMod l
     (hsum : f = ∑ d ∈ Finset.range l, Rf d) (hSupp : ∀ d : ℕ, d < l → Supp l d (Rf d)) :
     f.dissect l a = Rf a.val := by
   rw [hsum, show (∑ d ∈ Finset.range l, Rf d).dissect l a
-      = ∑ d ∈ Finset.range l, (Rf d).dissect l a from Supp.dissect_sum _ _]
+      = ∑ d ∈ Finset.range l, (Rf d).dissect l a from dissect_sum _ _]
   rw [Finset.sum_eq_single a.val]
   · have hSa : Supp l a (Rf a.val) := by
       nth_rewrite 1 [← ZMod.natCast_zmod_val a]; exact hSupp a.val a.val_lt
-    exact Supp.dissect_self hSa
+    exact dissect_self hSa
   · intro d hdmem hd
-    refine Supp.dissect_ne (hSupp d (Finset.mem_range.mp hdmem)) (fun hcontra => hd ?_)
+    refine dissect_ne (hSupp d (Finset.mem_range.mp hdmem)) (fun hcontra => hd ?_)
     have := congrArg ZMod.val hcontra
     rwa [ZMod.val_natCast, Nat.mod_eq_of_lt (Finset.mem_range.mp hdmem)] at this
   · exact fun h => absurd (Finset.mem_range.mpr a.val_lt) h
 
 /-- Peeling one factor supported on a single residue class out of a dissected product. -/
-theorem Supp.dissect_mul_supp {l : ℕ+} {r r' : ZMod l} {f g : (ZMod l)⟦X⟧}
+theorem dissect_mul_supp {l : ℕ+} {r r' : ZMod l} {f g : (ZMod l)⟦X⟧}
     (hg : Supp l r' g) :
     (f * g).dissect l r = (f.dissect l (r - r')) * g := by
   ext n
@@ -229,11 +231,13 @@ theorem Supp.dissect_mul_supp {l : ℕ+} {r r' : ZMod l} {f g : (ZMod l)⟦X⟧}
         exact absurd (by rw [← hc, hp1, hjr]; ring) hn
     · rw [if_neg hp1, zero_mul]
 
-theorem Supp.dissect_mul_dissect_sum {l : ℕ+} {r : ZMod l} (f g : (ZMod l)⟦X⟧) :
+theorem dissect_mul_dissect_sum {l : ℕ+} {r : ZMod l} (f g : (ZMod l)⟦X⟧) :
     (f * g).dissect l r
       = ∑ r' ∈ Finset.range l, (f.dissect l (r - r')) * g.dissect l r' := by
-  conv_lhs => rw [← sum_dissect g (l := l), Finset.mul_sum, Supp.dissect_sum]
-  exact Finset.sum_congr rfl fun r' _ => Supp.dissect_mul_supp (Supp.dissect_supp g)
+  conv_lhs => rw [← sum_dissect g (l := l), Finset.mul_sum, dissect_sum]
+  exact Finset.sum_congr rfl fun r' _ => dissect_mul_supp (dissect_supp g)
+
+end Supp
 
 @[simp]
 theorem coeff_mul_eq_zero_of_forall {R : Type*} [CommSemiring R] (f g : R⟦X⟧) (m : ℕ)
@@ -252,7 +256,14 @@ private lemma isNilpotent_pow_X_p (p : ℕ) (hp : Nat.Prime p) :
   · simp only [IsNilpotent.zero]
   exact Nat.Prime.ne_zero hp
 
-theorem qPochhammerInf_zmod_p_self_pow_p_zmod_p (p : ℕ) (hp : Nat.Prime p) :
+theorem isUnit_qPochhammerInf_X_zmod (l : ℕ) :
+    IsUnit ((X; X)_∞ : (ZMod l)⟦X⟧) := by
+  have hcont : Continuous (map (Int.castRingHom (ZMod l)) : ℤ⟦X⟧ →+* (ZMod l)⟦X⟧) := by fun_prop
+  have := (isUnit_qPochhammerInf (a := (X : ℤ⟦X⟧)) (q := X)).map (map (Int.castRingHom (ZMod l)))
+  rwa [map_qPochhammerInf_of_isTopologicallyNilpotent (map (Int.castRingHom (ZMod l))) hcont
+    isTopologicallyNilpotent_X isTopologicallyNilpotent_X, map_X] at this
+
+theorem qPochhammerInf_zmod_p_self_pow_p (p : ℕ) (hp : Nat.Prime p) :
     ((X; X)_∞ : (ZMod p)⟦X⟧) ^ p = (X ^ p; X ^ p)_∞ := by
   have hsub : ∀ Y : (ZMod p)⟦X⟧, (1 - Y) ^ p = 1 - Y ^ p := fun Y => by
     haveI : Fact p.Prime := ⟨hp⟩
@@ -270,14 +281,26 @@ theorem qPochhammerInf_zmod_p_self_pow_p_zmod_p (p : ℕ) (hp : Nat.Prime p) :
     (q := X ^ p) (isNilpotent_pow_X_p p hp) (isNilpotent_pow_X_p p hp)
   exact hEzp.unique (hEp0.congr_fun fun n => by ring)
 
-theorem isUnit_qPochhammerInf_X_zmod (l : ℕ) :
-    IsUnit ((X; X)_∞ : (ZMod l)⟦X⟧) := by
-  have hcont : Continuous (map (Int.castRingHom (ZMod l)) : ℤ⟦X⟧ →+* (ZMod l)⟦X⟧) := by fun_prop
-  have := (isUnit_qPochhammerInf (a := (X : ℤ⟦X⟧)) (q := X)).map (map (Int.castRingHom (ZMod l)))
-  rwa [map_qPochhammerInf_of_isTopologicallyNilpotent (map (Int.castRingHom (ZMod l))) hcont
-    isTopologicallyNilpotent_X isTopologicallyNilpotent_X, map_X] at this
+theorem coeff_qPochhammerInf_pow_p_zmod_p (p : ℕ) (hp : Nat.Prime p) (m : ℕ)
+    (hm : ¬ (p ∣ m)) : ((X ^ p; X ^ p)_∞ : (ZMod p)⟦X⟧).coeff m = 0 := by
+  letI : TopologicalSpace (ZMod p) := ⊥
+  letI : DiscreteTopology (ZMod p) := ⟨rfl⟩
+  have hcoeff := (PowerSeries.WithPiTopology.hasSum_iff_hasSum_coeff (ZMod p)).mp
+    (hasSum_qPochhammerInf_self (q := (X ^ p : (ZMod p)⟦X⟧)) (isNilpotent_pow_X_p p hp)) m
+  have hz : HasSum (fun _ : ℤ => (0 : ZMod p))
+      (((X ^ p; X ^ p)_∞ : (ZMod p)⟦X⟧).coeff m) := by
+    refine hcoeff.congr_fun fun k => ?_
+    rw [Units.smul_def, map_zsmul, ← pow_mul, PowerSeries.coeff_X_pow,
+      if_neg (fun h => hm ⟨pentagonal k, h⟩), smul_zero]
+  exact hz.unique hasSum_zero
 
-namespace Nat.Partition
+namespace Nat
+
+lemma choose_two_succ (n : ℕ) : 2 * (n + 1).choose 2 = (n + 1) * n := by
+  have hdvd : 2 ∣ (n + 1) * n := by rw [mul_comm]; exact (Nat.even_mul_succ_self n).two_dvd
+  rw [Nat.choose_two_right, Nat.add_sub_cancel, Nat.mul_div_cancel' hdvd]
+
+namespace Partition
 
 theorem map_powerSeriesCard_zmod (l : ℕ) :
     PowerSeries.map (Int.castRingHom (ZMod l)) powerSeriesCard
@@ -291,14 +314,14 @@ theorem map_powerSeriesCard_zmod (l : ℕ) :
     ext n
     simp [PowerSeries.coeff_map]
   refine h2.unique (h1.congr_fun fun n => ?_)
-  rw [zsmul_eq_mul, ← map_intCast (C : ZMod l →+* (ZMod l)⟦X⟧)]
+  rw [zsmul_eq_mul, ← map_intCast (PowerSeries.C : ZMod l →+* (ZMod l)⟦X⟧)]
 
-private theorem coeff_bInv_qPochhammerInf_zmod_p_pow_p (p : ℕ) (hp : Nat.Prime p) (m : ℕ)
+private theorem coeff_bInv_qPochhammerInf_pow_p_zmod_p (p : ℕ) (hp : Nat.Prime p) (m : ℕ)
     (hm : ¬ (p ∣ m)) : (bInv ((X ^ p; X ^ p)_∞ : (ZMod p)⟦X⟧)).coeff m = 0 := by
   have hfun : (fun n : ℕ => Partition.card n • (X ^ p : (ZMod p)⟦X⟧) ^ n)
       = fun n => C ((Partition.card n : ℤ) : ZMod p) * (X ^ p) ^ n := by
     funext n
-    rw [zsmul_eq_mul, ← map_intCast (C : ZMod p →+* (ZMod p)⟦X⟧)]
+    rw [zsmul_eq_mul, ← map_intCast (PowerSeries.C : ZMod p →+* (ZMod p)⟦X⟧)]
   have hsum := hasSum_card (q := (X ^ p : (ZMod p)⟦X⟧)) (isNilpotent_pow_X_p p hp)
   rw [hfun] at hsum
   rw [← hsum.tsum_eq]
@@ -309,43 +332,26 @@ private theorem coeff_bInv_qPochhammerInf_zmod_p_pow_p (p : ℕ) (hp : Nat.Prime
   refine Finset.sum_eq_zero fun i _ => ?_
   rw [coeff_C_mul, ← pow_mul, coeff_X_pow, if_neg (fun h => hm ⟨i, h⟩), mul_zero]
 
-private theorem coeff_qPochhammerInf_zmod_p_pow_p (p : ℕ) (hp : Nat.Prime p) (m : ℕ)
-    (hm : ¬ (p ∣ m)) : ((X ^ p; X ^ p)_∞ : (ZMod p)⟦X⟧).coeff m = 0 := by
-  letI : TopologicalSpace (ZMod p) := ⊥
-  letI : DiscreteTopology (ZMod p) := ⟨rfl⟩
-  have hcoeff := (PowerSeries.WithPiTopology.hasSum_iff_hasSum_coeff (ZMod p)).mp
-    (hasSum_qPochhammerInf_self (q := (X ^ p : (ZMod p)⟦X⟧)) (isNilpotent_pow_X_p p hp)) m
-  have hz : HasSum (fun _ : ℤ => (0 : ZMod p))
-      (((X ^ p; X ^ p)_∞ : (ZMod p)⟦X⟧).coeff m) := by
-    refine hcoeff.congr_fun fun k => ?_
-    rw [Units.smul_def, map_zsmul, ← pow_mul, PowerSeries.coeff_X_pow,
-      if_neg (fun h => hm ⟨pentagonal k, h⟩), smul_zero]
-  exact hz.unique hasSum_zero
+private theorem coeff_bInv_qPochhammerInf_zmod_p_sq (p : ℕ) (hp : Nat.Prime p)
+    (m : ℕ) (hm : ¬ (p ∣ m)) : (bInv (((X; X)_∞ : (ZMod p)⟦X⟧) ^ (2 * p))).coeff m = 0 := by
+  have hE := (qPochhammerInf_zmod_p_self_pow_p p hp).symm
+  have hEu : IsUnit ((X ^ p; X ^ p)_∞ : (ZMod p)⟦X⟧) := by
+    rw [hE]; exact (isUnit_qPochhammerInf_X_zmod p).pow p
+  have hsq : ((X; X)_∞ : (ZMod p)⟦X⟧) ^ (2 * p) = ((X ^ p; X ^ p)_∞) * ((X ^ p; X ^ p)_∞) := by
+    rw [hE]; ring
+  rw [hsq, hEu.bInv_mul hEu]
+  refine coeff_mul_eq_zero_of_forall _ _ m fun i j hij => ?_
+  by_cases hi : p ∣ i
+  · exact Or.inr (coeff_bInv_qPochhammerInf_pow_p_zmod_p p hp j
+    (fun hj => hm (hij ▸ Nat.dvd_add hi hj)))
+  · exact Or.inl (coeff_bInv_qPochhammerInf_pow_p_zmod_p p hp i hi)
 
 section Mod5
 
-private lemma coeff_bInv_qPochhammerInf_zmod5_pow_ten (m : ℕ) (hm : ¬ (5 ∣ m)) :
-    (bInv (((X; X)_∞ : (ZMod 5)⟦X⟧) ^ 10)).coeff m = 0 := by
-  have hE5 := (qPochhammerInf_zmod_p_self_pow_p_zmod_p 5 Nat.prime_five).symm
-  have hE5u : IsUnit ((X ^ 5; X ^ 5)_∞ : (ZMod 5)⟦X⟧) := by
-    rw [hE5]; exact (isUnit_qPochhammerInf_X_zmod 5).pow 5
-  have h10 : ((X; X)_∞ : (ZMod 5)⟦X⟧) ^ 10 = ((X ^ 5; X ^ 5)_∞) * ((X ^ 5; X ^ 5)_∞) := by
-    rw [hE5]; ring
-  rw [h10, hE5u.bInv_mul hE5u]
-  refine coeff_mul_eq_zero_of_forall _ _ m fun i j hij => ?_
-  by_cases hi : 5 ∣ i
-  · exact Or.inr (coeff_bInv_qPochhammerInf_zmod_p_pow_p 5 Nat.prime_five j
-    (fun hj => hm (hij ▸ Nat.dvd_add hi hj)))
-  · exact Or.inl (coeff_bInv_qPochhammerInf_zmod_p_pow_p 5 Nat.prime_five i hi)
-
 private lemma choose_two_succ_cast_zmod_five (n : ℕ) :
     ((n + 1).choose 2 : ZMod 5) = 3 * ((n : ZMod 5) + 1) * (n : ZMod 5) := by
-  have hdvd : 2 ∣ (n + 1) * n := by
-    rw [mul_comm]; exact (Nat.even_mul_succ_self n).two_dvd
-  have h2 : 2 * (n + 1).choose 2 = (n + 1) * n := by
-    rw [Nat.choose_two_right, Nat.add_sub_cancel, Nat.mul_div_cancel' hdvd]
   have h5 : (5 : ZMod 5) = 0 := by decide
-  have hc := congrArg (Nat.cast : ℕ → ZMod 5) h2
+  have hc := congrArg (Nat.cast : ℕ → ZMod 5) (Nat.choose_two_succ n)
   push_cast at hc
   linear_combination 3 * hc - ((n + 1).choose 2 : ZMod 5) * h5
 
@@ -358,7 +364,7 @@ private lemma coeff_qPochhammerInf_zmod_five_pow_three_eq_zero (m : ℕ)
     (hasSum_qPochhammerInf_self_pow_three_powerSeries (ZMod 5)) m
   have hz : HasSum (fun _ : ℕ => (0 : ZMod 5)) ((((X; X)_∞ : (ZMod 5)⟦X⟧) ^ 3).coeff m) := by
     refine hcoeff.congr_fun fun n => ?_
-    rw [show ((-1 : (ZMod 5)⟦X⟧)) ^ n * C (2 * (n : ZMod 5) + 1)
+    rw [show ((-1 : (ZMod 5)⟦X⟧)) ^ n * PowerSeries.C (2 * (n : ZMod 5) + 1)
         = C ((-1 : ZMod 5) ^ n * (2 * (n : ZMod 5) + 1)) by
           rw [map_mul, map_pow, map_neg, map_one], coeff_C_mul, coeff_X_pow]
     by_cases hk : m = (n + 1).choose 2
@@ -429,7 +435,7 @@ theorem coeff_map_powerSeriesCard_five_mul_add_four (n : ℕ) :
           rw [(ZMod.natCast_eq_zero_iff j 5).mpr hj, add_zero]
       _ = ((5 * n + 4 : ℕ) : ZMod 5) := by rw [← Nat.cast_add, hij]
       _ = 4 := by grind
-  · exact Or.inr (coeff_bInv_qPochhammerInf_zmod5_pow_ten j hj)
+  · exact Or.inr (coeff_bInv_qPochhammerInf_zmod_p_sq 5 Nat.prime_five j hj)
 
 /-- **Ramanujan's congruence mod 5**: `p(5n + 4) ≡ 0 (mod 5)` for every `n`, phrased as the
 vanishing, modulo `5`, of the power series `∑ p(5n + 4) qⁿ` obtained by dissecting
@@ -453,12 +459,8 @@ section Mod7
 
 private lemma choose_two_succ_cast_zmod_seven (n : ℕ) :
     ((n + 1).choose 2 : ZMod 7) = 4 * ((n : ZMod 7) + 1) * (n : ZMod 7) := by
-  have hdvd : 2 ∣ (n + 1) * n := by
-    rw [mul_comm]; exact (Nat.even_mul_succ_self n).two_dvd
-  have h2 : 2 * (n + 1).choose 2 = (n + 1) * n := by
-    rw [Nat.choose_two_right, Nat.add_sub_cancel, Nat.mul_div_cancel' hdvd]
   have h7 : (7 : ZMod 7) = 0 := by decide
-  have hc := congrArg (Nat.cast : ℕ → ZMod 7) h2
+  have hc := congrArg (Nat.cast : ℕ → ZMod 7) (Nat.choose_two_succ n)
   push_cast at hc
   linear_combination 4 * hc - ((n + 1).choose 2 : ZMod 7) * h7
 
@@ -471,7 +473,7 @@ private lemma coeff_qPochhammerInf_zmod_seven_pow_three_eq_zero (m : ℕ)
     (hasSum_qPochhammerInf_self_pow_three_powerSeries (ZMod 7)) m
   have hz : HasSum (fun _ : ℕ => (0 : ZMod 7)) ((((X; X)_∞ : (ZMod 7)⟦X⟧) ^ 3).coeff m) := by
     refine hcoeff.congr_fun fun n => ?_
-    rw [show ((-1 : (ZMod 7)⟦X⟧)) ^ n * C (2 * (n : ZMod 7) + 1)
+    rw [show ((-1 : (ZMod 7)⟦X⟧)) ^ n * PowerSeries.C (2 * (n : ZMod 7) + 1)
         = C ((-1 : ZMod 7) ^ n * (2 * (n : ZMod 7) + 1)) by
           rw [map_mul, map_pow, map_neg, map_one], coeff_C_mul, coeff_X_pow]
     by_cases hk : m = (n + 1).choose 2
@@ -533,8 +535,8 @@ theorem coeff_map_powerSeriesCard_seven_mul_add_five (n : ℕ) :
       _ = ((7 * n + 5 : ℕ) : ZMod 7) := by rw [← Nat.cast_add, hij]
       _ = 5 := by grind
   · refine Or.inr ?_
-    rw [qPochhammerInf_zmod_p_self_pow_p_zmod_p 7 Nat.prime_seven]
-    exact coeff_bInv_qPochhammerInf_zmod_p_pow_p 7 Nat.prime_seven j hj
+    rw [qPochhammerInf_zmod_p_self_pow_p 7 Nat.prime_seven]
+    exact coeff_bInv_qPochhammerInf_pow_p_zmod_p 7 Nat.prime_seven j hj
 
 /-- **Ramanujan's congruence mod 7**: `p(7n + 5) ≡ 0 (mod 7)` for every `n`, phrased as the
 vanishing, modulo `7`, of the power series `∑ p(7n + 5) qⁿ`. -/
@@ -557,12 +559,8 @@ section Mod11
 
 private lemma choose_two_succ_cast_zmod_eleven (n : ℕ) :
     ((n + 1).choose 2 : ZMod 11) = 6 * ((n : ZMod 11) + 1) * (n : ZMod 11) := by
-  have hdvd : 2 ∣ (n + 1) * n := by
-    rw [mul_comm]; exact (Nat.even_mul_succ_self n).two_dvd
-  have h2 : 2 * (n + 1).choose 2 = (n + 1) * n := by
-    rw [Nat.choose_two_right, Nat.add_sub_cancel, Nat.mul_div_cancel' hdvd]
   have h11 : (11 : ZMod 11) = 0 := by decide
-  have hc := congrArg (Nat.cast : ℕ → ZMod 11) h2
+  have hc := congrArg (Nat.cast : ℕ → ZMod 11) (Nat.choose_two_succ n)
   push_cast at hc
   linear_combination 6 * hc - ((n + 1).choose 2 : ZMod 11) * h11
 
@@ -578,7 +576,7 @@ private lemma coeff_qPochhammerInf_zmod_eleven_pow_three_eq_zero (m : ℕ)
     (hasSum_qPochhammerInf_self_pow_three_powerSeries (ZMod 11)) m
   have hz : HasSum (fun _ : ℕ => (0 : ZMod 11)) ((((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 3).coeff m) := by
     refine hcoeff.congr_fun fun n => ?_
-    rw [show ((-1 : (ZMod 11)⟦X⟧)) ^ n * C (2 * (n : ZMod 11) + 1)
+    rw [show ((-1 : (ZMod 11)⟦X⟧)) ^ n * PowerSeries.C (2 * (n : ZMod 11) + 1)
         = C ((-1 : ZMod 11) ^ n * (2 * (n : ZMod 11) + 1)) by
           rw [map_mul, map_pow, map_neg, map_one], coeff_C_mul, coeff_X_pow]
     by_cases hk : m = (n + 1).choose 2
@@ -650,16 +648,16 @@ private noncomputable def Jd (i : ℕ) : (ZMod 11)⟦X⟧ :=
 
 private theorem Supp_Jd (i : ℕ) : Supp 11 i (Jd i) := Supp.dissect_supp _
 
-private lemma Supp_n3 : Supp 11 0 (3 : (ZMod 11)⟦X⟧) := by
-  rw [show (3 : (ZMod 11)⟦X⟧) = PowerSeries.C 3 from (map_ofNat _ 3).symm]; exact Supp.C 3
-private lemma Supp_n4 : Supp 11 0 (4 : (ZMod 11)⟦X⟧) := by
-  rw [show (4 : (ZMod 11)⟦X⟧) = PowerSeries.C 4 from (map_ofNat _ 4).symm]; exact Supp.C 4
-private lemma Supp_n6 : Supp 11 0 (6 : (ZMod 11)⟦X⟧) := by
-  rw [show (6 : (ZMod 11)⟦X⟧) = PowerSeries.C 6 from (map_ofNat _ 6).symm]; exact Supp.C 6
-private lemma Supp_n12 : Supp 11 0 (12 : (ZMod 11)⟦X⟧) := by
-  rw [show (12 : (ZMod 11)⟦X⟧) = PowerSeries.C 12 from (map_ofNat _ 12).symm]; exact Supp.C 12
-private lemma Supp_n24 : Supp 11 0 (24 : (ZMod 11)⟦X⟧) := by
-  rw [show (24 : (ZMod 11)⟦X⟧) = PowerSeries.C 24 from (map_ofNat _ 24).symm]; exact Supp.C 24
+private lemma Supp_n (n : ℕ) (hn : 2 ≤ n) : Supp 11 0 (n : (ZMod 11)⟦X⟧) := by
+  haveI := Nat.AtLeastTwo.mk hn
+  rw [show (n : (ZMod 11)⟦X⟧) = PowerSeries.C (n : ZMod 11) from (map_ofNat _ n).symm]
+  exact Supp.C n
+
+private lemma Supp_n3 : Supp 11 0 3 := Supp_n 3 (by decide)
+private lemma Supp_n4 : Supp 11 0 4 := Supp_n 4 (by decide)
+private lemma Supp_n6 : Supp 11 0 6 := Supp_n 6 (by decide)
+private lemma Supp_n12 : Supp 11 0 12 := Supp_n 12 (by decide)
+private lemma Supp_n24 : Supp 11 0 24 := Supp_n 24 (by decide)
 
 private noncomputable def R4c : ℕ → (ZMod 11)⟦X⟧
   | 0 => 4 * Jd 3 * Jd 10 ^ 3 + 12 * Jd 3 ^ 2 * Jd 6 * Jd 10 + 6 * Jd 1 ^ 2 * Jd 10 ^ 2 +
@@ -837,7 +835,7 @@ private lemma dissect_Ez12_eq_zero {r : ℕ} (h0 : (r : ZMod 11) ≠ 0) (h1 : (r
     (h7 : (r : ZMod 11) ≠ 7) : (((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 12).dissect 11 r = 0 := by
   have hfrob : ((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 12 = (X ^ 11; X ^ 11)_∞ * (X; X)_∞ := by
     rw [show (12 : ℕ) = 11 + 1 from rfl, pow_succ,
-      qPochhammerInf_zmod_p_self_pow_p_zmod_p 11 Nat.prime_eleven]
+      qPochhammerInf_zmod_p_self_pow_p 11 Nat.prime_eleven]
   rw [hfrob]; ext n; rw [coeff_dissect, map_zero]
   split_ifs with h
   · have hnr : n % 11 = r % 11 :=
@@ -851,7 +849,7 @@ private lemma dissect_Ez12_eq_zero {r : ℕ} (h0 : (r : ZMod 11) ≠ 0) (h1 : (r
         rwa [ZMod.natCast_mod, ZMod.natCast_mod] at this
       refine coeff_qPochhammerInf_zmod_eleven_eq_zero j ?_ ?_ ?_ ?_ ?_ ?_ <;>
         rw [hjr] <;> assumption
-    · exact Or.inl (coeff_qPochhammerInf_zmod_p_pow_p 11 Nat.prime_eleven i hi)
+    · exact Or.inl (coeff_qPochhammerInf_pow_p_zmod_p 11 Nat.prime_eleven i hi)
   · rfl
 
 private lemma R4c_eq_zero {r : ℕ}
@@ -865,7 +863,7 @@ private lemma R4c_eq_zero {r : ℕ}
   have z7 : (r : ZMod 11) ≠ 7 := natCast_ne 11 hr (by norm_num) h7
   have hval : (r : ZMod (11 : ℕ+)).val = r := by
     rw [ZMod.val_natCast]; exact Nat.mod_eq_of_lt hr
-  rw [← hval, ← dissect_eq_of_sum (r : ZMod (11 : ℕ+)) hS4_eq Supp_R4c,
+  rw [← hval, ← Supp.dissect_eq_of_sum (r : ZMod (11 : ℕ+)) hS4_eq Supp_R4c,
     show (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4 = (((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 3) ^ 4 by
       rw [hEz3],
     show (((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 3) ^ 4 = ((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 12 by ring]
@@ -880,29 +878,26 @@ private lemma dissect_Ez21_six_eq_zero :
   have hR10 : R4c 10 = 0 := R4c_eq_zero (by decide)
   have hR : ∀ a : ℕ, a < 11 → ((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4).dissect 11 a = R4c a :=
     fun a ha => by
-      have := dissect_eq_of_sum (a : ZMod (11 : ℕ+)) hS4_eq Supp_R4c
+      have := Supp.dissect_eq_of_sum (a : ZMod (11 : ℕ+)) hS4_eq Supp_R4c
       rw [ZMod.val_natCast] at this
       rwa [show a % ((11 : ℕ+) : ℕ) = a from Nat.mod_eq_of_lt ha] at this
   have hK : ∀ b : ℕ, b < 11 → ((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3).dissect 11 b = K3c b :=
     fun b hb => by
-      have := dissect_eq_of_sum (b : ZMod (11 : ℕ+)) hS3_eq Supp_K3c
+      have := Supp.dissect_eq_of_sum (b : ZMod (11 : ℕ+)) hS3_eq Supp_K3c
       rw [ZMod.val_natCast] at this
       rwa [show b % ((11 : ℕ+) : ℕ) = b from Nat.mod_eq_of_lt hb] at this
+  have hsub : ∀ r' : ℕ, r' < 11 →
+      6 - ((r' : ℕ) : ZMod (11 : ℕ+)) = (((17 - r') % 11 : ℕ) : ZMod (11 : ℕ+)) := by
+    decide
   rw [hEz3, show (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 7 = (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4
       * (Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3 from by ring,
     show (((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4) * ((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3)
         ).dissect 11 6
       = ∑ r' ∈ Finset.range 11, (((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 4).dissect 11 (6 - r'))
         * ((Jd 0 + Jd 1 + Jd 3 + Jd 6 + Jd 10) ^ 3).dissect 11 r' from
-      Supp.dissect_mul_dissect_sum _ _]
-  have hsub : ∀ r' : ℕ, r' < 11 →
-      (6 : ZMod (11 : ℕ+)) - ((r' : ℕ) : ZMod (11 : ℕ+)) = (((17 - r') % 11 : ℕ) : ZMod (11 : ℕ+)) := by
-    decide
-  simp only [Finset.sum_range_succ, Finset.sum_range_zero]
-  simp only [hsub 0 (by norm_num), hsub 1 (by norm_num), hsub 2 (by norm_num),
-    hsub 3 (by norm_num), hsub 4 (by norm_num), hsub 5 (by norm_num), hsub 6 (by norm_num),
-    hsub 7 (by norm_num), hsub 8 (by norm_num), hsub 9 (by norm_num), hsub 10 (by norm_num),
-    Nat.reduceSub, Nat.reduceMod]
+      Supp.dissect_mul_dissect_sum _ _,
+    Finset.sum_congr rfl fun r' hr' => by rw [hsub r' (Finset.mem_range.mp hr')]]
+  simp only [Finset.sum_range_succ, Finset.sum_range_zero, Nat.reduceSub, Nat.reduceMod]
   rw [hR 6 (by norm_num), hR 5 (by norm_num), hR 4 (by norm_num), hR 3 (by norm_num),
     hR 2 (by norm_num), hR 1 (by norm_num), hR 0 (by norm_num), hR 10 (by norm_num),
     hR 9 (by norm_num), hR 8 (by norm_num), hR 7 (by norm_num), hK 0 (by norm_num),
@@ -951,21 +946,6 @@ private lemma dissect_Ez21_six_eq_zero :
       - 5 * Jd 0 ^ 5 * Jd 3 ^ 2
       - 3 * Jd 0 ^ 6 * Jd 6) * h11
 
-
-private lemma coeff_bInv_qPochhammerInf_zmod11_pow_22 (m : ℕ) (hm : ¬ (11 ∣ m)) :
-    (bInv (((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 22)).coeff m = 0 := by
-  have hE11 := (qPochhammerInf_zmod_p_self_pow_p_zmod_p 11 Nat.prime_eleven).symm
-  have hE11u : IsUnit ((X ^ 11; X ^ 11)_∞ : (ZMod 11)⟦X⟧) := by
-    rw [hE11]; exact (isUnit_qPochhammerInf_X_zmod 11).pow 11
-  have h22 : ((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 22 = (X ^ 11; X ^ 11)_∞ * (X ^ 11; X ^ 11)_∞ := by
-    rw [hE11]; ring
-  rw [h22, hE11u.bInv_mul hE11u]
-  refine coeff_mul_eq_zero_of_forall _ _ m fun i j hij => ?_
-  by_cases hi : 11 ∣ i
-  · exact Or.inr (coeff_bInv_qPochhammerInf_zmod_p_pow_p 11 Nat.prime_eleven j
-      (fun hj => hm (hij ▸ Nat.dvd_add hi hj)))
-  · exact Or.inl (coeff_bInv_qPochhammerInf_zmod_p_pow_p 11 Nat.prime_eleven i hi)
-
 private lemma map_powerSeriesCard_zmod_eleven_eq :
     PowerSeries.map (Int.castRingHom (ZMod 11)) powerSeriesCard
       = (((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 3) ^ 7 * bInv (((X; X)_∞ : (ZMod 11)⟦X⟧) ^ 22) := by
@@ -992,7 +972,7 @@ theorem coeff_map_powerSeriesCard_eleven_mul_add_six (n : ℕ) :
       linear_combination hc + ((n : ZMod (11 : ℕ+)) - (c : ZMod (11 : ℕ+))) * h11
     have hc := congrArg (PowerSeries.coeff i) dissect_Ez21_six_eq_zero
     rwa [coeff_dissect, if_pos hi6, map_zero] at hc
-  · exact Or.inr (coeff_bInv_qPochhammerInf_zmod11_pow_22 j hj)
+  · exact Or.inr (coeff_bInv_qPochhammerInf_zmod_p_sq 11 Nat.prime_eleven j hj)
 
 /-- **Ramanujan's congruence mod 11**: `p(11n + 6) ≡ 0 (mod 11)` for every `n`, phrased as the
 vanishing, modulo `11`, of the power series `∑ p(11n + 6) qⁿ`. -/
@@ -1012,4 +992,6 @@ theorem eleven_dvd_card_eleven_mul_add_six (n : ℕ) :
 
 end Mod11
 
-end Nat.Partition
+end Partition
+
+end Nat
