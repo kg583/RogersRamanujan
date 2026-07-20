@@ -48,8 +48,7 @@ protected abbrev length {n : ℕ} (p : Partition n) := p.parts.card
 protected abbrev maxPart {n : ℕ} (p : Partition n) := Multiset.fold max 0 p.parts
 
 @[simp]
-theorem conjugate_length_eq_maxPart {n : ℕ} (p : Partition n) :
-    p.conjugate.length = p.maxPart := by
+theorem conjugate_length_eq_maxPart {n : ℕ} (p : Partition n) : p.conjugate.length = p.maxPart := by
   set μ := YoungDiagram.ofPartition p with hμ
   have hparts : p.parts = (μ.rowLens : Multiset ℕ) := by
     rw [YoungDiagram.rowLens_ofPartition_eq_sort_parts p, Multiset.sort_eq]
@@ -77,10 +76,18 @@ theorem conjugate_length_eq_maxPart {n : ℕ} (p : Partition n) :
     rw [← Nat.bot_eq_zero]
     exact (Multiset.fold_max_eq_of_mem_of_forall_le hmem hub).symm
 
-protected abbrev rank {n : ℕ} (p : Partition n) := p.maxPart - p.length
+@[simp]
+theorem conjugate_maxPart_eq_length {n : ℕ} (p : Partition n) : p.conjugate.maxPart = p.length := by
+  rw [← conjugate_conjugate p, conjugate_length_eq_maxPart, conjugate_conjugate p]
+
+protected abbrev rank {n : ℕ} (p : Partition n) := (p.maxPart : ℤ) - p.length
 
 protected abbrev crank {n : ℕ} (p : Partition n) :=
   let w := p.parts.count 1
-  if w = 0 then p.maxPart else w - (p.parts.filter (· > w)).card
+  if w = 0 then (p.maxPart : ℤ) else (w : ℤ) - (p.parts.filter (· > w)).card
+
+@[simp]
+theorem conjugate_rank_eq_neg_rank {n : ℕ} (p : Partition n) : p.conjugate.rank = -p.rank := by
+  simp [Partition.rank]
 
 end Nat.Partition
