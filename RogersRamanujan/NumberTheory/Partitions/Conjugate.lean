@@ -2,6 +2,7 @@ module
 
 public import Mathlib.Combinatorics.Enumerative.Partition.Basic
 public import Mathlib.Combinatorics.Young.YoungDiagram
+public import Mathlib.Data.ZMod.Basic
 
 public import RogersRamanujan.NumberTheory.Partitions.PR
 
@@ -80,14 +81,40 @@ theorem conjugate_length_eq_maxPart {n : ℕ} (p : Partition n) : p.conjugate.le
 theorem conjugate_maxPart_eq_length {n : ℕ} (p : Partition n) : p.conjugate.maxPart = p.length := by
   rw [← conjugate_conjugate p, conjugate_length_eq_maxPart, conjugate_conjugate p]
 
+section Rank
+
 protected abbrev rank {n : ℕ} (p : Partition n) := (p.maxPart : ℤ) - p.length
+
+def rankFiber (m : ℤ) (n : ℕ) := {p : Partition n | p.rank = m}
+def rankModFiber {q : ℕ} (m : ZMod q) (n : ℕ) := {p : Partition n | (p.rank : ZMod q) = m}
+
+@[simp]
+theorem conjugate_rank_eq_neg_rank {n : ℕ} (p : Partition n) : p.conjugate.rank = -p.rank := by
+  simp [Partition.rank]
+
+def equiv_rankFiber (m : ℤ) (n : ℕ) : rankFiber (-m) n ≃ rankFiber m n where
+  toFun p := ⟨p.val.conjugate, by
+    have hp : p.val.rank = -m := p.2
+    change p.val.conjugate.rank = m
+    rw [conjugate_rank_eq_neg_rank, hp, neg_neg]⟩
+  invFun q := ⟨q.val.conjugate, by
+    have hq : q.val.rank = m := q.2
+    change q.val.conjugate.rank = -m
+    rw [conjugate_rank_eq_neg_rank, hq]⟩
+  left_inv p := Subtype.ext (conjugate_conjugate p.val)
+  right_inv q := Subtype.ext (conjugate_conjugate q.val)
+
+end Rank
+
+section Crank
 
 protected abbrev crank {n : ℕ} (p : Partition n) :=
   let w := p.parts.count 1
   if w = 0 then (p.maxPart : ℤ) else (w : ℤ) - (p.parts.filter (· > w)).card
 
-@[simp]
-theorem conjugate_rank_eq_neg_rank {n : ℕ} (p : Partition n) : p.conjugate.rank = -p.rank := by
-  simp [Partition.rank]
+def crankFiber (m : ℤ) (n : ℕ) := {p : Partition n | p.crank = m}
+def crankModFiber {q : ℕ} (m : ZMod q) (n : ℕ) := {p : Partition n | (p.crank : ZMod q) = m}
+
+end Crank
 
 end Nat.Partition
