@@ -94,13 +94,11 @@ theorem conjugate_rank_eq_neg_rank {n : ℕ} (p : Partition n) : p.conjugate.ran
 
 def equiv_rankFiber (m : ℤ) (n : ℕ) : rankFiber (-m) n ≃ rankFiber m n where
   toFun p := ⟨p.val.conjugate, by
-    have hp : p.val.rank = -m := p.2
     change p.val.conjugate.rank = m
-    rw [conjugate_rank_eq_neg_rank, hp, neg_neg]⟩
+    rw [conjugate_rank_eq_neg_rank, p.2, neg_neg]⟩
   invFun q := ⟨q.val.conjugate, by
-    have hq : q.val.rank = m := q.2
     change q.val.conjugate.rank = -m
-    rw [conjugate_rank_eq_neg_rank, hq]⟩
+    rw [conjugate_rank_eq_neg_rank, q.2]⟩
   left_inv p := Subtype.ext (conjugate_conjugate p.val)
   right_inv q := Subtype.ext (conjugate_conjugate q.val)
 
