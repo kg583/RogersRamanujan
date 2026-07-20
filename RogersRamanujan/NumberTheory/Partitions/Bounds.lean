@@ -120,16 +120,14 @@ theorem card_ge_two_pow_sqrt (n : ℕ) (hn : 2 ≤ n) : 2 ^ Nat.sqrt n ≤ Parti
   rw [Partition.card]
   exact_mod_cast hcard
 
-/-- The number of partitions of `n` is at most `2 ^ n` for all `n`. -/
-theorem card_le_two_pow (n : ℕ) : Partition.card n ≤ 2 ^ n := by
+/-- The number of partitions of `n` is at most `2 ^ (n - 1)` for all `n`. -/
+theorem card_le_two_pow (n : ℕ) : Partition.card n ≤ 2 ^ (n - 1) := by
   have hcard : Fintype.card (Nat.Partition n) ≤ Fintype.card (Composition n) :=
     Fintype.card_le_of_surjective
       (fun c => Partition.ofComposition n c)
       Partition.ofComposition_surj
   rw [composition_card n] at hcard
-  have h2 : Fintype.card (Nat.Partition n) ≤ 2 ^ n :=
-    hcard.trans (pow_le_pow_right' (by norm_num) (Nat.sub_le n 1))
   rw [Partition.card]
-  exact_mod_cast h2
+  exact_mod_cast hcard
 
 end Nat.Partition
