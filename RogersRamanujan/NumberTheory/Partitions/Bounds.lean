@@ -112,13 +112,24 @@ private lemma subsetToPartition_injective (n : ℕ) (hn : 2 ≤ n) :
     _ ↔ j ∈ T := small_mem_subsetToPartition_iff hn T j
 
 /-- The number of partitions of `n` is at least `2 ^ Nat.sqrt n` for `n ≥ 2`. -/
-theorem card_le_two_pow_sqrt (n : ℕ) (hn : 2 ≤ n) :
-    2 ^ Nat.sqrt n ≤ Partition.card n := by
+theorem card_ge_two_pow_sqrt (n : ℕ) (hn : 2 ≤ n) : 2 ^ Nat.sqrt n ≤ Partition.card n := by
   have hcard : Fintype.card (Finset (Icc 1 (Nat.sqrt n))) ≤ Fintype.card (Nat.Partition n) :=
     Fintype.card_le_of_injective (subsetToPartition n hn) (subsetToPartition_injective n hn)
   simp only [mem_Icc, Fintype.card_finset, Fintype.card_coe, card_Icc, add_tsub_cancel_right]
     at hcard
   rw [Partition.card]
   exact_mod_cast hcard
+
+/-- The number of partitions of `n` is at most `2 ^ n` for all `n`. -/
+theorem card_le_two_pow (n : ℕ) : Partition.card n ≤ 2 ^ n := by
+  have hcard : Fintype.card (Nat.Partition n) ≤ Fintype.card (Composition n) :=
+    Fintype.card_le_of_surjective
+      (fun c => Partition.ofComposition n c)
+      Partition.ofComposition_surj
+  rw [composition_card n] at hcard
+  have h2 : Fintype.card (Nat.Partition n) ≤ 2 ^ n :=
+    hcard.trans (pow_le_pow_right' (by norm_num) (Nat.sub_le n 1))
+  rw [Partition.card]
+  exact_mod_cast h2
 
 end Nat.Partition
