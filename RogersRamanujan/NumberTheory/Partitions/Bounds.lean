@@ -4,6 +4,8 @@ public import Mathlib.Combinatorics.Enumerative.Partition.Basic
 public import Mathlib.Data.Nat.Sqrt
 public import Mathlib.Tactic
 
+public import RogersRamanujan.NumberTheory.Partitions.Defs
+
 @[expose] public section
 
 open Finset
@@ -110,10 +112,13 @@ private lemma subsetToPartition_injective (n : ℕ) (hn : 2 ≤ n) :
     _ ↔ j ∈ T := small_mem_subsetToPartition_iff hn T j
 
 /-- The number of partitions of `n` is at least `2 ^ Nat.sqrt n` for `n ≥ 2`. -/
-theorem partition_lower_bound_two_pow_sqrt (n : ℕ) (hn : 2 ≤ n) :
-    2 ^ Nat.sqrt n ≤ Fintype.card (Nat.Partition n) := by
+theorem card_le_two_pow_sqrt (n : ℕ) (hn : 2 ≤ n) :
+    2 ^ Nat.sqrt n ≤ Partition.card n := by
   have hcard : Fintype.card (Finset (Icc 1 (Nat.sqrt n))) ≤ Fintype.card (Nat.Partition n) :=
     Fintype.card_le_of_injective (subsetToPartition n hn) (subsetToPartition_injective n hn)
-  simpa [Fintype.card_coe, Nat.card_Icc] using hcard
+  simp only [mem_Icc, Fintype.card_finset, Fintype.card_coe, card_Icc, add_tsub_cancel_right]
+    at hcard
+  rw [Partition.card]
+  exact_mod_cast hcard
 
 end Nat.Partition

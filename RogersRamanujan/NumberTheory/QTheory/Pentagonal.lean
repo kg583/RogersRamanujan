@@ -9,6 +9,7 @@ import Mathlib.RingTheory.MvPowerSeries.LinearTopology
 public import RogersRamanujan.Algebra.Group.Units.Basic
 import RogersRamanujan.Algebra.Group.Units.Hom
 import RogersRamanujan.Combinatorics.Enumerative.Pentagonal
+public import RogersRamanujan.NumberTheory.Partitions.Defs
 public import RogersRamanujan.NumberTheory.QTheory.Defs
 import RogersRamanujan.NumberTheory.QTheory.JacobiTripleProduct.Basic
 import RogersRamanujan.NumberTheory.QTheory.StrongNonarchimedean
@@ -67,8 +68,6 @@ alias pentagonal_number_theorem := tsum_qPochhammerInf_self
 namespace Nat.Partition
 
 open PowerSeries PowerSeries.WithPiTopology Finset
-
-protected abbrev card (n : ℕ) : ℤ := Fintype.card (Partition n)
 
 noncomputable def powerSeriesCard : ℤ⟦X⟧ := PowerSeries.mk fun n ↦ Partition.card n
 
