@@ -14,6 +14,9 @@ protected abbrev card (n : ℕ) : ℤ := Fintype.card (Partition n)
 protected abbrev length {n : ℕ} (p : Partition n) := p.parts.card
 protected abbrev maxPart {n : ℕ} (p : Partition n) := Multiset.fold max 0 p.parts
 
+def lengthRestricted (n k : ℕ) :=  {p : Partition n // p.length <= k}
+def sizeRestricted (n k : ℕ) :=  Partition.restricted n (· ≤ k)
+
 protected abbrev rank {n : ℕ} (p : Partition n) := (p.maxPart : ℤ) - p.length
 
 def rankFiber (m : ℤ) (n : ℕ) := {p : Partition n | p.rank = m}

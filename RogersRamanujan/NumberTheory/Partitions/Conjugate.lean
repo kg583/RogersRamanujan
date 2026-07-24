@@ -17,6 +17,12 @@ theorem fold_max_eq_of_mem_of_forall_le {α : Type*} [LinearOrder α] [OrderBot 
   simp only [Multiset.quot_mk_to_coe'', Multiset.mem_coe] at hm hmax
   exact le_antisymm (List.max_le_of_forall_le _ _ hmax) (List.le_max_of_le hm le_rfl)
 
+theorem fold_max_le_iff {α : Type*} [LinearOrder α] [OrderBot α]
+    {s : Multiset α} {m : α} : s.fold max ⊥ ≤ m ↔ ∀ x ∈ s, x ≤ m := by
+  obtain ⟨l⟩ := s
+  simp only [Multiset.quot_mk_to_coe'', Multiset.mem_coe]
+  exact ⟨fun h x hx => (List.le_max_of_le hx le_rfl).trans h, List.max_le_of_forall_le _ _⟩
+
 end Multiset
 
 namespace Nat.Partition
@@ -76,6 +82,28 @@ theorem conjugate_length_eq_maxPart {n : ℕ} (p : Partition n) : p.conjugate.le
 @[simp]
 theorem conjugate_maxPart_eq_length {n : ℕ} (p : Partition n) : p.conjugate.maxPart = p.length := by
   rw [← conjugate_conjugate p, conjugate_length_eq_maxPart, conjugate_conjugate p]
+
+theorem maxPart_le_iff {n : ℕ} {p : Partition n} {k : ℕ} :
+    p.maxPart ≤ k ↔ ∀ i ∈ p.parts, i ≤ k := by
+  change Multiset.fold max 0 p.parts ≤ k ↔ _
+  rw [← Nat.bot_eq_zero]
+  exact Multiset.fold_max_le_iff
+
+theorem mem_sizeRestricted_iff {n k : ℕ} {p : Partition n} :
+    p ∈ Partition.sizeRestricted n k ↔ ∀ i ∈ p.parts, i ≤ k := by
+  simp [Partition.sizeRestricted, Partition.restricted]
+
+def equiv_maxPart_length (n k : ℕ) :
+    Partition.lengthRestricted n k ≃ Partition.sizeRestricted n k where
+  toFun p := ⟨p.val.conjugate, by
+    rw [mem_sizeRestricted_iff, ← maxPart_le_iff, conjugate_maxPart_eq_length]
+    exact p.2⟩
+  invFun q := ⟨q.val.conjugate, by
+    show q.val.conjugate.length ≤ k
+    rw [conjugate_length_eq_maxPart, maxPart_le_iff, ← mem_sizeRestricted_iff]
+    exact q.2⟩
+  left_inv p := Subtype.ext (conjugate_conjugate p.val)
+  right_inv q := Subtype.ext (conjugate_conjugate q.val)
 
 @[simp]
 theorem conjugate_rank_eq_neg_rank {n : ℕ} (p : Partition n) : p.conjugate.rank = -p.rank := by
