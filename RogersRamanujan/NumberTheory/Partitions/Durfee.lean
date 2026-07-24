@@ -392,37 +392,37 @@ def rank {n : ℕ} (p : Partition n) : ℕ :=
     (squares p).max' (Set.nonempty_of_mem (zero_square p))
 
 def right {n : ℕ} (p : Partition n) :=
-  Partition.ofMultiset (Multiset.filter (· > 0) (Multiset.map (· - Durfee.rank p) p.parts))
+  Partition.ofMultiset (Multiset.filter (· > 0) (Multiset.map (· - rank p) p.parts))
 
 def bottom {n : ℕ} (p : Partition n) :=
-  Partition.ofMultiset ((p.parts.sort (· ≥ ·)).drop (Durfee.rank p) : Multiset ℕ)
+  Partition.ofMultiset ((p.parts.sort (· ≥ ·)).drop (rank p) : Multiset ℕ)
 
-def symbol {n : ℕ} (p : Partition n) := ((Durfee.right p), (Durfee.bottom p))
+def symbol {n : ℕ} (p : Partition n) := ((right p), (bottom p))
 
 theorem conjugate_rank_eq_rank {n : ℕ} (p : Partition n) :
-    Durfee.rank p.conjugate = Durfee.rank p := by
-  rw [Durfee.rank, Durfee.rank]
+    rank p.conjugate = rank p := by
+  rw [rank, rank]
   conv_lhs =>
     congr
     rw [conjugate_squares_eq_squares]
 
 private lemma not_mem_squares_succ_rank {n : ℕ} (p : Partition n) :
-    Durfee.rank p + 1 ∉ squares p := fun hmem => by
-  have hle : Durfee.rank p + 1 ≤ Durfee.rank p := Finset.le_max' (squares p) _ hmem
+    rank p + 1 ∉ squares p := fun hmem => by
+  have hle : rank p + 1 ≤ rank p := Finset.le_max' (squares p) _ hmem
   omega
 
 private lemma rowLens_get_le_rank_of_ge {n : ℕ} (p : Partition n) {i : ℕ}
-    (hi : i < (YoungDiagram.ofPartition p).rowLens.length) (hdi : Durfee.rank p ≤ i) :
-    (YoungDiagram.ofPartition p).rowLens[i] ≤ Durfee.rank p := by
-  by_cases hdn : Durfee.rank p + 1 ≤ n
-  · have hnm := (mem_squares_iff p (Durfee.rank p + 1)).not.mp (not_mem_squares_succ_rank p)
+    (hi : i < (YoungDiagram.ofPartition p).rowLens.length) (hdi : rank p ≤ i) :
+    (YoungDiagram.ofPartition p).rowLens[i] ≤ rank p := by
+  by_cases hdn :rank p + 1 ≤ n
+  · have hnm := (mem_squares_iff p (rank p + 1)).not.mp (not_mem_squares_succ_rank p)
     simp only [hdn, true_and, not_and_or, Nat.add_eq_zero_iff, one_ne_zero, and_false,
       false_or] at hnm
     rcases hnm with h1 | h2
     · omega
     · simp only [Nat.add_sub_cancel] at h2
       rw [YoungDiagram.get_rowLens]
-      exact ((YoungDiagram.ofPartition p).rowLen_anti (Durfee.rank p) i hdi).trans (by omega)
+      exact ((YoungDiagram.ofPartition p).rowLen_anti (rank p) i hdi).trans (by omega)
   · have hmem : (YoungDiagram.ofPartition p).rowLens[i] ∈ p.parts :=
       (YoungDiagram.rowLens_parts_eq p) ▸ List.getElem_mem hi
     have hxn : (YoungDiagram.ofPartition p).rowLens[i] ≤ n := by
@@ -433,57 +433,61 @@ private lemma rowLens_get_le_rank_of_ge {n : ℕ} (p : Partition n) {i : ℕ}
     omega
 
 theorem rank_le_rowLens_length {n : ℕ} (p : Partition n) :
-    Durfee.rank p ≤ (YoungDiagram.ofPartition p).rowLens.length :=
-  ((mem_squares_iff p (Durfee.rank p)).mp (Finset.max'_mem (squares p) _)).2.1
+    rank p ≤ (YoungDiagram.ofPartition p).rowLens.length :=
+  ((mem_squares_iff p (rank p)).mp (Finset.max'_mem (squares p) _)).2.1
 
 private lemma rowLen_ge_rank_of_lt {n : ℕ} (p : Partition n) {i : ℕ}
-    (hi : i < Durfee.rank p) : Durfee.rank p ≤ (YoungDiagram.ofPartition p).rowLen i := by
-  obtain ⟨-, -, hd⟩ := (mem_squares_iff p (Durfee.rank p)).mp (Finset.max'_mem (squares p) _)
+    (hi : i < rank p) : rank p ≤ (YoungDiagram.ofPartition p).rowLen i := by
+  obtain ⟨-, -, hd⟩ := (mem_squares_iff p (rank p)).mp (Finset.max'_mem (squares p) _)
   rcases hd with hd0 | hd
   · omega
-  · exact hd.trans ((YoungDiagram.ofPartition p).rowLen_anti i (Durfee.rank p - 1) (by omega))
+  · exact hd.trans ((YoungDiagram.ofPartition p).rowLen_anti i (rank p - 1) (by omega))
 
 private lemma card_parts_gt_rank_le {n : ℕ} (p : Partition n) :
-    (p.parts.filter (· > Durfee.rank p)).card ≤ Durfee.rank p := by
+    (p.parts.filter (· > rank p)).card ≤ rank p := by
   set μ := YoungDiagram.ofPartition p with hμ
   rw [YoungDiagram.rowLens_parts_eq p, ← hμ,
-      show (Multiset.filter (· > Durfee.rank p) (μ.rowLens : Multiset ℕ)).card
-      = (μ.rowLens.filter (· > Durfee.rank p : ℕ → Bool)).length from rfl]
-  exact List.filter_gt_length_le _ (Durfee.rank p)
+      show (Multiset.filter (· > rank p) (μ.rowLens : Multiset ℕ)).card
+      = (μ.rowLens.filter (· > rank p : ℕ → Bool)).length from rfl]
+  exact List.filter_gt_length_le _ (rank p)
     fun i hi hdi => rowLens_get_le_rank_of_ge p (hμ ▸ hi) hdi
 
-theorem right_length_le {n : ℕ} (p : Partition n) : (Durfee.right p).length ≤ Durfee.rank p := by
-  have heq : Multiset.filter (· > 0) (Multiset.map (· - Durfee.rank p) p.parts)
-      = Multiset.map (· - Durfee.rank p) (p.parts.filter (· > Durfee.rank p)) := by
+@[simp]
+theorem right_length_le {n : ℕ} (p : Partition n) : (right p).length ≤ rank p := by
+  have heq : Multiset.filter (· > 0) (Multiset.map (· - rank p) p.parts)
+      = Multiset.map (· - rank p) (p.parts.filter (· > rank p)) := by
     rw [Multiset.filter_map]
     congr 1
     exact Multiset.filter_congr fun x _ => by simp only [Function.comp_apply]; omega
-  have hpos : ∀ x ∈ Multiset.filter (· > 0) (Multiset.map (· - Durfee.rank p) p.parts), x ≠ 0 :=
+  have hpos : ∀ x ∈ Multiset.filter (· > 0) (Multiset.map (· - rank p) p.parts), x ≠ 0 :=
     fun x hx => (Multiset.mem_filter.mp hx).2.ne'
-  change ((Multiset.filter (· > 0) (Multiset.map (· - Durfee.rank p) p.parts)).filter (· ≠ 0)).card
-      ≤ Durfee.rank p
+  change ((Multiset.filter (· > 0) (Multiset.map (· - rank p) p.parts)).filter (· ≠ 0)).card
+      ≤ rank p
   rw [Multiset.filter_eq_self.mpr hpos, heq, Multiset.card_map]
   exact card_parts_gt_rank_le p
 
+@[simp]
 theorem bottom_maxPart_le {n : ℕ} (p : Partition n) :
-    (Durfee.bottom p).maxPart ≤ Durfee.rank p := by
+    (bottom p).maxPart ≤ rank p := by
   rw [maxPart_le_iff]
   intro i hi
-  have hi' : i ∈ ((p.parts.sort (· ≥ ·)).drop (Durfee.rank p) : Multiset ℕ) :=
+  have hi' : i ∈ ((p.parts.sort (· ≥ ·)).drop (rank p) : Multiset ℕ) :=
     Multiset.mem_of_le (Multiset.filter_le _ _) hi
   rw [← YoungDiagram.rowLens_ofPartition_eq_sort_parts p, Multiset.mem_coe,
     List.mem_drop_iff_getElem] at hi'
   obtain ⟨j, hj, rfl⟩ := hi'
   exact rowLens_get_le_rank_of_ge p (by omega) (by omega)
 
+@[simp]
 theorem right_parts_eq {n : ℕ} (p : Partition n) :
-    (Durfee.right p).parts = Multiset.filter (· > 0) (Multiset.map (· - (Durfee.rank p)) p.parts) :=
+    (right p).parts = Multiset.filter (· > 0) (Multiset.map (· - rank p) p.parts) :=
   Multiset.filter_eq_self.mpr fun _ hx => (Multiset.mem_filter.mp hx).2.ne'
 
+@[simp]
 theorem bottom_parts_eq {n : ℕ} (p : Partition n) :
-    (Durfee.bottom p).parts = ((p.parts.sort (· ≥ ·)).drop (Durfee.rank p) : Multiset ℕ) := by
-  change (((p.parts.sort (· ≥ ·)).drop (Durfee.rank p) : Multiset ℕ)).filter (· ≠ 0)
-      = ((p.parts.sort (· ≥ ·)).drop (Durfee.rank p) : Multiset ℕ)
+    (bottom p).parts = ((p.parts.sort (· ≥ ·)).drop (rank p) : Multiset ℕ) := by
+  change (((p.parts.sort (· ≥ ·)).drop (rank p) : Multiset ℕ)).filter (· ≠ 0)
+      = ((p.parts.sort (· ≥ ·)).drop (rank p) : Multiset ℕ)
   refine Multiset.filter_eq_self.mpr fun x hx => ?_
   rw [Multiset.mem_coe] at hx
   have hxmem : x ∈ p.parts.sort (· ≥ ·) := List.mem_of_mem_drop hx
@@ -492,54 +496,53 @@ theorem bottom_parts_eq {n : ℕ} (p : Partition n) :
   exact (p.parts_pos hxp).ne'
 
 theorem rank_sq_add_size_eq {n : ℕ} (p : Partition n) :
-    (Durfee.rank p) ^ 2 + (Durfee.right p).parts.sum + (Durfee.bottom p).parts.sum = n := by
+    (rank p) ^ 2 + (right p).parts.sum + (bottom p).parts.sum = n := by
   have hsorteq : p.parts.sort (· ≥ ·) = (YoungDiagram.ofPartition p).rowLens :=
     (YoungDiagram.rowLens_ofPartition_eq_sort_parts p).symm
-  have hLlen : Durfee.rank p ≤ (YoungDiagram.ofPartition p).rowLens.length :=
+  have hLlen : rank p ≤ (YoungDiagram.ofPartition p).rowLens.length :=
     rank_le_rowLens_length p
   have hLsum : (YoungDiagram.ofPartition p).rowLens.sum = n := by
     have h := map_parts_sum_eq p id
     simp only [Multiset.map_id, List.map_id] at h
     rw [← hsorteq, ← h, p.parts_sum]
-  have hrsum : (Durfee.right p).parts.sum = (Multiset.map (· - Durfee.rank p) p.parts).sum := by
+  have hrsum : (right p).parts.sum = (Multiset.map (· - rank p) p.parts).sum := by
     rw [right_parts_eq p]
-    conv_rhs => rw [← Multiset.filter_add_not (· > 0) (Multiset.map (· - Durfee.rank p) p.parts)]
+    conv_rhs => rw [← Multiset.filter_add_not (· > 0) (Multiset.map (· - rank p) p.parts)]
     rw [Multiset.sum_add]
     have hz : (Multiset.filter (fun a => ¬ a > 0)
-        (Multiset.map (· - Durfee.rank p) p.parts)).sum = 0 := by
+        (Multiset.map (· - rank p) p.parts)).sum = 0 := by
       rw [Multiset.sum_eq_zero_iff]
       exact fun x hx => by have := (Multiset.mem_filter.mp hx).2; omega
     omega
-  have hbsum : (Durfee.bottom p).parts.sum
-      = ((YoungDiagram.ofPartition p).rowLens.drop (Durfee.rank p)).sum := by
+  have hbsum : (bottom p).parts.sum
+      = ((YoungDiagram.ofPartition p).rowLens.drop (rank p)).sum := by
     rw [bottom_parts_eq p, hsorteq]; rfl
-  have hdropzero : (((YoungDiagram.ofPartition p).rowLens.drop (Durfee.rank p)).map
-      (· - Durfee.rank p)).sum = 0 :=
-    sum_sub_eq_zero_of_forall_le _ (Durfee.rank p) fun x hx => by
+  have hdropzero : (((YoungDiagram.ofPartition p).rowLens.drop (rank p)).map
+      (· - rank p)).sum = 0 :=
+    sum_sub_eq_zero_of_forall_le _ (rank p) fun x hx => by
       obtain ⟨j, hj, rfl⟩ := List.mem_drop_iff_getElem.mp hx
       exact rowLens_get_le_rank_of_ge p (by omega) (by omega)
-  have htakelen : ((YoungDiagram.ofPartition p).rowLens.take (Durfee.rank p)).length
-      = Durfee.rank p := by rw [List.length_take]; omega
-  have htakeforall : ∀ x ∈ (YoungDiagram.ofPartition p).rowLens.take (Durfee.rank p),
-      Durfee.rank p ≤ x := by
+  have htakelen : ((YoungDiagram.ofPartition p).rowLens.take (rank p)).length = rank p := by
+    rw [List.length_take]; omega
+  have htakeforall : ∀ x ∈ (YoungDiagram.ofPartition p).rowLens.take (rank p), rank p ≤ x := by
     intro x hx
     rw [List.mem_take_iff_getElem] at hx
     obtain ⟨j, hj, rfl⟩ := hx
     rw [YoungDiagram.get_rowLens]
     exact rowLen_ge_rank_of_lt p (by omega)
-  have htakesum := sum_sub_add_mul_length_eq _ (Durfee.rank p) htakeforall
+  have htakesum := sum_sub_add_mul_length_eq _ (rank p) htakeforall
   rw [htakelen] at htakesum
-  have htakesplit : (YoungDiagram.ofPartition p).rowLens.map (· - Durfee.rank p)
-      = ((YoungDiagram.ofPartition p).rowLens.take (Durfee.rank p)).map (· - Durfee.rank p)
-        ++ ((YoungDiagram.ofPartition p).rowLens.drop (Durfee.rank p)).map (· - Durfee.rank p) := by
+  have htakesplit : (YoungDiagram.ofPartition p).rowLens.map (· - rank p)
+      = ((YoungDiagram.ofPartition p).rowLens.take (rank p)).map (· - rank p)
+        ++ ((YoungDiagram.ofPartition p).rowLens.drop (rank p)).map (· - rank p) := by
     rw [← List.map_append, List.take_append_drop]
   have hsumsplit : (YoungDiagram.ofPartition p).rowLens.sum
-      = ((YoungDiagram.ofPartition p).rowLens.take (Durfee.rank p)).sum
-        + ((YoungDiagram.ofPartition p).rowLens.drop (Durfee.rank p)).sum :=
-    (List.sum_take_add_sum_drop _ (Durfee.rank p)).symm
-  rw [hrsum, hbsum, map_parts_sum_eq p (· - Durfee.rank p), hsorteq,
+      = ((YoungDiagram.ofPartition p).rowLens.take (rank p)).sum
+        + ((YoungDiagram.ofPartition p).rowLens.drop (rank p)).sum :=
+    (List.sum_take_add_sum_drop _ (rank p)).symm
+  rw [hrsum, hbsum, map_parts_sum_eq p (· - rank p), hsorteq,
     htakesplit, List.sum_append, hdropzero]
-  have := sq (Durfee.rank p)
+  have := sq (rank p)
   omega
 
 /-- Reconstruct a partition of `d ^ 2 + m1 + m2` from a Durfee square of size `d`, a partition
@@ -558,7 +561,7 @@ def merge {d m1 m2 : ℕ} (α : lengthRestricted m1 d) (β : sizeRestricted m2 d
       omega)
 
 theorem merge_parts_eq {d m1 m2 : ℕ} (α : lengthRestricted m1 d) (β : sizeRestricted m2 d) :
-    (Durfee.merge α β).parts
+    (merge α β).parts
       = α.val.parts.map (· + d) + Multiset.replicate (d - α.val.length) d + β.val.parts := by
   change (α.val.parts.map (· + d) + Multiset.replicate (d - α.val.length) d + β.val.parts).filter
       (· ≠ 0) = _
@@ -576,7 +579,7 @@ theorem merge_parts_eq {d m1 m2 : ℕ} (α : lengthRestricted m1 d) (β : sizeRe
 
 theorem merge_filter_gt_eq {d m1 m2 : ℕ} (α : lengthRestricted m1 d)
     (β : sizeRestricted m2 d) :
-    (Durfee.merge α β).parts.filter (d < ·) = α.val.parts.map (· + d) := by
+    (merge α β).parts.filter (d < ·) = α.val.parts.map (· + d) := by
   rw [merge_parts_eq, Multiset.filter_add, Multiset.filter_add]
   have h1 : Multiset.filter (d < ·) (α.val.parts.map (· + d)) = α.val.parts.map (· + d) := by
     refine Multiset.filter_eq_self.mpr fun x hx => ?_
@@ -609,8 +612,7 @@ theorem merge_card_filter_ge_le {d m1 m2 : ℕ}
   have hAB : α.val.parts.map (· + d) + Multiset.replicate (d - α.val.length) d
       ≤ α.val.parts.map (· + d) + Multiset.replicate (d - α.val.length) d + β.val.parts :=
     Multiset.le_add_right _ _
-  have hABall : ∀ x ∈ α.val.parts.map (· + d) + Multiset.replicate (d - α.val.length) d,
-      d ≤ x := by
+  have hall : ∀ x ∈ α.val.parts.map (· + d) + Multiset.replicate (d - α.val.length) d, d ≤ x := by
     intro x hx
     rw [Multiset.mem_add] at hx
     rcases hx with hx | hx
@@ -619,10 +621,10 @@ theorem merge_card_filter_ge_le {d m1 m2 : ℕ}
       omega
     · obtain ⟨-, hxd⟩ := Multiset.mem_replicate.mp hx
       rw [hxd]
-  have hABeq : Multiset.filter (d ≤ ·)
+  have heq : Multiset.filter (d ≤ ·)
       (α.val.parts.map (· + d) + Multiset.replicate (d - α.val.length) d)
       = α.val.parts.map (· + d) + Multiset.replicate (d - α.val.length) d :=
-    Multiset.filter_eq_self.mpr hABall
+    Multiset.filter_eq_self.mpr hall
   have hcard : Multiset.card (α.val.parts.map (· + d)
       + Multiset.replicate (d - α.val.length) d) = d := by
     rw [Multiset.card_add, Multiset.card_map, Multiset.card_replicate]
@@ -632,7 +634,7 @@ theorem merge_card_filter_ge_le {d m1 m2 : ℕ}
   calc d = Multiset.card (α.val.parts.map (· + d)
         + Multiset.replicate (d - α.val.length) d) := hcard.symm
     _ = (Multiset.filter (d ≤ ·) (α.val.parts.map (· + d)
-        + Multiset.replicate (d - α.val.length) d)).card := by rw [hABeq]
+        + Multiset.replicate (d - α.val.length) d)).card := by rw [heq]
     _ ≤ _ := Multiset.card_le_card (Multiset.filter_le_filter (d ≤ ·) hAB)
 
 theorem merge_mem_squares {d m1 m2 : ℕ} (α : lengthRestricted m1 d) (β : sizeRestricted m2 d) :
@@ -777,30 +779,21 @@ theorem merge_decompose_parts_eq {n : ℕ} (p : Partition n) :
     (right p).parts.map (· + rank p) + Multiset.replicate (rank p - (right p).length) (rank p)
       + (bottom p).parts = p.parts := by
   set d := rank p
-  have hrparts := right_parts_eq p
-  have hrmap : (right p).parts.map (· + d) = p.parts.filter (· > d) := by
-    rw [hrparts]
-    have hAstep : Multiset.filter (· > 0) (Multiset.map (· - d) p.parts)
+  have hAstep : Multiset.filter (· > 0) (Multiset.map (· - d) p.parts)
         = Multiset.map (· - d) (p.parts.filter (· > d)) := by
       rw [Multiset.filter_map]
       congr 1
       exact Multiset.filter_congr fun x _ => by simp only [Function.comp_apply]; omega
-    rw [hAstep, Multiset.map_map]
+  have hrmap : (right p).parts.map (· + d) = p.parts.filter (· > d) := by
+    rw [right_parts_eq p, hAstep, Multiset.map_map]
     refine (Multiset.map_congr rfl fun x hx => ?_).trans (Multiset.map_id' _)
     simp only [Function.comp_apply]
     have := (Multiset.mem_filter.mp hx).2
     omega
   have hrlen : (right p).length = (p.parts.filter (· > d)).card := by
     change (right p).parts.card = _
-    rw [hrparts]
-    have hAstep : Multiset.filter (· > 0) (Multiset.map (· - d) p.parts)
-        = Multiset.map (· - d) (p.parts.filter (· > d)) := by
-      rw [Multiset.filter_map]
-      congr 1
-      exact Multiset.filter_congr fun x _ => by simp only [Function.comp_apply]; omega
-    rw [hAstep, Multiset.card_map]
-  have hbparts := bottom_parts_eq p
-  rw [hrmap, hrlen, hbparts]
+    rw [right_parts_eq p, hAstep, Multiset.card_map]
+  rw [hrmap, hrlen, bottom_parts_eq p]
   rw [(YoungDiagram.rowLens_ofPartition_eq_sort_parts p).symm]
   set L := (YoungDiagram.ofPartition p).rowLens with hL
   have hpw : L.Pairwise (· ≥ ·) :=
@@ -825,7 +818,7 @@ theorem merge_decompose_parts_eq {n : ℕ} (p : Partition n) :
     have hsub : (L.take d : Multiset ℕ) ≤ Multiset.filter (d ≤ ·) (L : Multiset ℕ) :=
       Multiset.le_filter.mpr ⟨List.take_le_coe L d,
                               fun a ha => htakeforall a (Multiset.mem_coe.mp ha)⟩
-    have h1 := Multiset.card_le_card hsub
+    have := Multiset.card_le_card hsub
     have h2 : Multiset.card (L.take d : Multiset ℕ) = d := by
       change (L.take d).length = d
       rw [List.length_take]; omega
@@ -908,10 +901,10 @@ theorem card_rankFiber {n d : ℕ} (hd : d ^ 2 ≤ n) :
       ∑ mm ∈ Finset.antidiagonal (n - d ^ 2),
         Fintype.card (lengthRestricted mm.1 d) * Fintype.card (sizeRestricted mm.2 d) := by
   rw [Fintype.card_subtype]
-  have hstep1 : (Finset.univ.filter (fun p : Partition n => rank p = d)).card
+  let rankFilter := fun p : Partition n => rank p = d
+  have hstep1 : (Finset.univ.filter rankFilter).card
       = ∑ m1 ∈ Finset.range (n - d ^ 2 + 1),
-        ((Finset.univ.filter (fun p : Partition n => rank p = d)).filter
-          (fun p => (right p).parts.sum = m1)).card := by
+        ((Finset.univ.filter rankFilter).filter (fun p => (right p).parts.sum = m1)).card := by
     refine Finset.card_eq_sum_card_fiberwise (fun p hp => ?_)
     rw [Finset.mem_coe, Finset.mem_filter] at hp
     have hsize := rank_sq_add_size_eq p
@@ -993,12 +986,18 @@ theorem hasSum_card {R : Type*} [CommRing R] [UniformSpace R] [IsUniformAddGroup
   have hxn : IsTopologicallyNilpotent (X : ℤ⟦X⟧) := by simp
   have h1 : HasSum (fun n ↦ Partition.card n • (X : ℤ⟦X⟧) ^ n) powerSeriesCard := by
     simpa [monomial_eq_C_mul_X_pow] using hasSum_of_monomials_self powerSeriesCard
-  have hCval : intEval q powerSeriesCard = bInv (q; q)_∞ :=
+  have htsum : intEval q powerSeriesCard = bInv (q; q)_∞ :=
     (h1.map (intEval q) (by fun_prop)).unique <|
       (Nat.Partition.hasSum_card hq).congr_fun fun n => by simp [hq]
-  convert hasSum_card_powerSeries.map (intEval q) (by fun_prop) using 2
-  · simp [hq, isUnit_qPochhammer hxn hxn, IsUnit.map_bInv, map_qPochhammer]
-  · rw [hCval]
+  convert hasSum_card_powerSeries.map (intEval q) (by fun_prop) using 1 <;>
+    simp [funext_iff, hq, htsum, isUnit_qPochhammer hxn hxn, IsUnit.map_bInv, map_qPochhammer]
+
+/-- For the version with `HasSum`, see `hasSum_card`. -/
+theorem tsum_card {R : Type*} [CommRing R] [UniformSpace R] [IsUniformAddGroup R]
+    [NonarchimedeanRing R] [CompleteSpace R] [T2Space R]
+    {q : R} (hq : IsTopologicallyNilpotent q := by simp) :
+    ∑' d : ℕ, q ^ d ^ 2 * bInv (q; q)_d * bInv (q; q)_d = bInv (q; q)_∞ :=
+  (hasSum_card hq).tsum_eq
 
 end Durfee
 
